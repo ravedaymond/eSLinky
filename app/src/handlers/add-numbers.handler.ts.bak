@@ -1,0 +1,29 @@
+export default class AddNumbers {
+    static apiKey: string = 'test';
+    static channel: string = 'add-numbers';
+
+    static async renderer(...args: number[]) {
+        const response = await window.test.addNumbers(args);
+        console.log('addNumbers', response);
+    }
+
+    static preload(contextBridge: typeof Electron.contextBridge, ipcRenderer: typeof Electron.ipcRenderer) {
+        contextBridge.exposeInMainWorld(this.apiKey, {
+            addNumbers: (args: number[]) => ipcRenderer.invoke(this.channel, args),
+        });
+    }
+
+    static main(ipcMain: typeof Electron.ipcMain) {
+        ipcMain.handle(this.channel, (event, args) => {
+            return this.listener(args);
+        });
+    }
+
+    static listener(args: number[]) {
+        let result = 0;
+        args.forEach(arg => {
+            result += arg;
+        });
+        return result;
+    }
+}

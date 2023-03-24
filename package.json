@@ -16,7 +16,7 @@
     "name": "Dave Raymond",
     "email": "29096723+ravedaymond@users.noreply.github.com"
   },
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "GPL-3.0-only",
   "devDependencies": {
     "@electron-forge/cli": "^6.0.5",
     "@electron-forge/maker-deb": "^6.0.5",

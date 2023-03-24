@@ -1,0 +1,3 @@
+interface AppWindow extends Window {
+    
+}
