@@ -6,7 +6,7 @@
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
     <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
-    <meta id="versions" content=""/>
+    <meta id="versions" content="" />
     <link rel="stylesheet" type="text/css" href="index.css">
 </head>
 
@@ -43,10 +43,19 @@
                 </div>
             </div>
             <div class="content">
-                <div class="content-sidebar"></div>
+                <!-- <div class="content-sidebar"></div> -->
                 <div class="content-workspace">
-                    <div class="workspace"></div>
-                    <div class="workspace-terminal"></div>
+                    <div class="workspace">
+                        <div class="workspace-control">
+                            <div class="workspace-breadcrumb"></div>
+                            <div class="workspace-actions"></div>
+                        </div>
+                        <div class="workspace-main"></div>
+                    </div>
+                    <div class="workspace-terminal">
+                        <div class="terminal-actions"></div>
+                        <div class="terminal"></div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,0 +1,12 @@
+{
+    "link": {
+        "active": false,
+        "file": false,
+        "hard": false,
+        "junction": false,
+        "link": "",
+        "target": "",
+        "description": "",
+        "tags": []
+    }
+}
