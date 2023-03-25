@@ -1,0 +1,20 @@
+{
+  "name": "eslinky",
+  "productName": "eslinky",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "description": "A Symbolic Link manager created with Electron.",
+  "main": "./app/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": {
+    "name": "Dave Raymond",
+    "email": "29096723+ravedaymond@users.noreply.github.com"
+  },
+  "license": "GPL-3.0-only",
+  "devDependencies": {
+    "electron": "23.2.0"
+  }
+}
