@@ -13,13 +13,14 @@ const KeyboardRefreshShortcuts = [
 
 class Main {
     static #window;
+    static #devTools = { mode: 'bottom' };
 
     static init() {
         app.whenReady().then(() => {
             // Disable all chromium refresh keyboard commands
-            globalShortcut.registerAll(KeyboardRefreshShortcuts, () => { 
+            // globalShortcut.registerAll(KeyboardRefreshShortcuts, () => { 
                 //console.log('Chromium window refresh shortcuts are disabled.') 
-            });
+            // });
 
             Main.#createWindow();
             // Windows are only able to be created after the ready event. 
@@ -69,11 +70,12 @@ class Main {
         });
 
         // Open Dev Tools
-        Main.#window.webContents.openDevTools({ mode: 'detach' });
+        Main.#window.webContents.openDevTools(Main.#devTools);
     }
 
     static #preloadIconsHandler() {
-        ipcMain.handleOnce('preload-icons', (event, icons) => {
+        // ipcMain.handleOnce('preload-icons', (event, icons) => {
+        ipcMain.handle('preload-icons', (event, icons) => {
             let resp = [];
             icons.forEach(icon => {
                 resp.push(fs.readFileSync(path.join(`${__dirname}/assets/svg/${icon}.svg`), { encoding: 'utf-8' }));
@@ -90,6 +92,13 @@ class Main {
         ipcMain.handle('window-button-maximize', (event) => {
             if(Main.#window.isMaximized()) {
                 Main.#window.unmaximize();
+                // Additional if statement for dev tools.
+                // Noticed that when dev tools was open while maximized,
+                // minimizing would hide dev tools.
+                // if(Main.#window.webContents.isDevToolsOpened()) {
+                //     Main.#window.webContents.closeDevTools();
+                //     Main.#window.webContents.openDevTools(Main.#devTools)
+                // }
             } else if(Main.#window.isFullScreen()) {
                 Main.#window.setFullScreen(false);
             } else {

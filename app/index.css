@@ -17,7 +17,8 @@
     --content-sidebar-width-min: 200px;
 
     /* Icons */
-    --icon-size: 16px;
+    --titlebar-icon-size: 16px;
+    --dock-icon-size: 22px;
     --icon-stroke: 1.5;
 
     /* Workspace */
@@ -40,6 +41,31 @@ body {
     flex-direction: column;
     width: 100%;
     height: 100%;
+}
+
+.content-container {
+    display: flex;
+    flex: 1 0 0;
+    flex-direction: row;
+    width: 100%;
+}
+
+.content {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.icon-button:hover {
+    background-color: var(--main-accent-color-dark);
+}
+
+.icon-button svg {
+    stroke: currentColor;
+    fill: none;
+    stroke-width: var(--icon-stroke);
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .titlebar {
@@ -67,16 +93,6 @@ body {
     /* z-index:1; */
 }
 
-.icon-button svg {
-    width: var(--icon-size);
-    height: var(--icon-size);
-    stroke: currentColor;
-    fill: none;
-    stroke-width: var(--icon-stroke);
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
 .titlebar-button {
     display: flex;
     flex-flow:row;
@@ -90,15 +106,9 @@ body {
     -webkit-app-region: no-drag;
 }
 
-.icon-button:hover {
-    background-color: var(--main-accent-color-dark);
-}
-
-.content-container {
-    display: flex;
-    flex: 1 0 0;
-    flex-direction: row;
-    width: 100%;
+.titlebar-button svg {
+    width: var(--titlebar-icon-size);
+    height: var(--titlebar-icon-size);
 }
 
 .content-dock {
@@ -106,12 +116,16 @@ body {
     flex-direction: column;
     width: var(--content-dock-width);
     height: 100%;
+    margin: 0px;
+    padding: 0px;
+    
+    align-items: center;
+    justify-content: right;
+
     background-color: var(--main-bg-color-medium);
     border-right-style: solid;
     border-right-width: 1px;
     border-right-color: var(--main-accent-color-dark);
-    margin: 0px;
-    padding: 0px;
 }
 
 /* .dock-section {
@@ -122,26 +136,29 @@ body {
     flex-grow: 1;
 }
 
+/* .dock-settings {
+    
+} */
+
 .dock-button {
     display: flex;
-    flex-flow: row;
+    flex-flow: column;
     width: var(--content-dock-width);
     height: var(--titlebar-height);
+
     justify-content: center;
     align-items: center;
 }
 
-.content {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
+.dock-button svg {
+    width: var(--dock-icon-size);
+    height: var(--dock-icon-size);
 }
-
-.content-sidebar {
+/* .content-sidebar {
     display: flex;
     flex-direction: column;
     width: 100%;
-}
+} */
 
 .content-workspace {
     display: flex;
@@ -149,10 +166,34 @@ body {
     width: 100%;
 }
 
-.workspace {
+/* .workspace {
     height: 100%;
+} */
+
+/* .workspace-control {
+    width: 100%;
+}
+
+.workspace-breadcrumb {
+    width: 100%;
+}
+
+.workspace-actions {
+    width: 100%;
+}
+
+.workspace-main {
+    width: 100%;
 }
 
 .workspace-terminal {
     height: 100%;
 }
+
+.terminal-actions {
+    width: 100%;
+}
+
+.terminal {
+    width: 100%;
+} */
