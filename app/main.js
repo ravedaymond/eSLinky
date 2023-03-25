@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, OpenDevToolsOptions } = require('electron');
 const path = require('path');
 
 class Main {
@@ -29,11 +29,6 @@ class Main {
     createWindow() {
         this.mainWindow = new BrowserWindow({
             titleBarStyle: 'hidden',
-            titleBarOverlay: {
-                color: "#4F6D7A",
-                symbolColor: "#EAEAEA",
-                height: 39
-            },
             width: 800,
             height: 600,
             show: false,
@@ -44,13 +39,13 @@ class Main {
         });
 
         this.mainWindow.loadURL(path.join(__dirname, 'index.html'));
-
+        // Do not show window until DOM and styling are loaded
         this.mainWindow.once('ready-to-show', () => {
             this.mainWindow.show();
-        })
-        
+
+        });
         // Open Dev Tools
-        this.mainWindow.webContents.openDevTools();
+        this.mainWindow.webContents.openDevTools({mode: 'detach'});
     }
 
     setupHandlers() {
