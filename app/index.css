@@ -8,49 +8,55 @@
     --secondary-svg-color-dark: #D3BF94;
     --main-accent-color-light: #EAEAEA;
     --main-accent-color-dark: #5f8494;
-  
+
     /* Titlebar */
     --titlebar-height: 40px;
-    
+
     /* Content */
     --content-dock-width: 44px;
     --content-sidebar-width-min: 200px;
-  
+
     /* Icons */
-    --icon-size: 24px;
+    --icon-size: 16px;
     --icon-stroke: 1.5;
-  
+
     /* Workspace */
     --workspace-terminal-height-min: 200px;
-  }
-  
-  html, body {
+}
+
+html,
+body {
     margin: 0;
     padding: 0;
     height: 100%;
     width: 100%;
-  
+
     background-color: var(--main-bg-color-dark);
     color: var(--main-accent-color-light);
-  }
-  
-  
-  
-  .app-container {
+}
+
+.app-container {
     display: flex;
     flex-direction: column;
     width: 100%;
     height: 100%;
-  }
-  
-  .titlebar {
+}
+
+.titlebar {
     position: relative;
+    display: flex;
+    flex: row;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     height: var(--titlebar-height);
-    
+    margin: 0;
+    padding: 0;
+
+    align-items: center;
+    justify-content: right;
+
     background-color: var(--main-bg-color-medium);
     border-bottom-style: solid;
     border-bottom-width: 1px;
@@ -59,16 +65,43 @@
     -webkit-user-select: none;
     -webkit-app-region: drag;
     /* z-index:1; */
-  }
-  
-  .content-container {
+}
+
+.icon-button svg {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    stroke: currentColor;
+    fill: none;
+    stroke-width: var(--icon-stroke);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.titlebar-button {
+    display: flex;
+    flex-flow:row;
+    width: var(--content-dock-width);
+    height: 100%;
+
+    justify-content: center;
+    align-items: center;
+    user-select: text;
+    -webkit-user-select: text;
+    -webkit-app-region: no-drag;
+}
+
+.icon-button:hover {
+    background-color: var(--main-accent-color-dark);
+}
+
+.content-container {
     display: flex;
     flex: 1 0 0;
     flex-direction: row;
     width: 100%;
-  }
-  
-  .content-dock {
+}
+
+.content-dock {
     display: flex;
     flex-direction: column;
     width: var(--content-dock-width);
@@ -79,57 +112,47 @@
     border-right-color: var(--main-accent-color-dark);
     margin: 0px;
     padding: 0px;
-  }
-  
-  /* .dock-section {
+}
+
+/* .dock-section {
     flex-basis: 50%;
   } */
-  
-  .dock-actions {
+
+.dock-actions {
     flex-grow: 1;
-  }
-  
-  .dock-button {
+}
+
+.dock-button {
     display: flex;
     flex-flow: row;
-    height: var(--titlebar-height);
     width: var(--content-dock-width);
+    height: var(--titlebar-height);
     justify-content: center;
     align-items: center;
-  }
-  
-  .icon-button svg {
-    width: var(--icon-size);
-    height: var(--icon-size);
-    stroke: currentColor;
-    fill: none;
-    stroke-width: var(--icon-stroke);
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-  
-  .content {
+}
+
+.content {
     display: flex;
     flex-direction: row;
     width: 100%;
-  }
-  
-  .content-sidebar {
+}
+
+.content-sidebar {
     display: flex;
     flex-direction: column;
     width: 100%;
-  }
-  
-  .content-workspace {
+}
+
+.content-workspace {
     display: flex;
     flex-direction: column;
     width: 100%;
-  }
-  
-  .workspace {
+}
+
+.workspace {
     height: 100%;
-  }
-  
-  .workspace-terminal {
+}
+
+.workspace-terminal {
     height: 100%;
-  }
+}
