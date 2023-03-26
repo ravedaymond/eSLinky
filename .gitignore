@@ -1,3 +1,6 @@
+# eSLinky config
+app/config
+
 # Logs
 logs
 *.log

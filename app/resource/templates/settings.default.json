@@ -1,11 +1,14 @@
 {
-    "winslink": {
+    "eslink": {
         "version": "",
         "preferences": {
-            "theme": "winslink"
+            "theme": "default-dark"
         },
-        "themes": {
-            "winslink": {}
-        }
+        "collections": {
+            "directories": [],
+            "files": []
+        },
+        "tags": [],
+        "links": {}
     }
 }

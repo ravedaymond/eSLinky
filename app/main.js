@@ -11,9 +11,17 @@ const KeyboardRefreshShortcuts = [
     'F5'
 ];
 
+const settings = loadSettings();
+const loadSettings = () => {
+    const file = fs.readFileSync(path.join(`${__dirname}/config/settings.json`), { encoding: 'utf-8' });
+    return file;
+}
+
 class Main {
     static #window;
     static #devTools = { mode: 'bottom' };
+
+    static #settings;
 
     static init() {
         app.whenReady().then(() => {
