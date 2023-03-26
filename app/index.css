@@ -1,28 +1,31 @@
 :root {
-    --main-bg-color-medium: #4F6D7A;
-    --main-bg-color-dark: #455C6A;
-    --secondary-bg-color: #C0D6DF;
-    --main-svg-color-medium: #DD6E42;
-    --main-svg-color-dark: #C0513B;
-    --secondary-svg-color-medium: #E8DAB2;
-    --secondary-svg-color-dark: #D3BF94;
-    --main-accent-color-light: #EAEAEA;
-    --main-accent-color-dark: #5f8494;
+    --app-icon-svg-stroke: 1.5;
+    
+    --app-titlebar-height: 40px;
+    --app-titlebar-icon-width: var(--app-titlebar-height);
+    --app-titlebar-icon-svg-size: 16px;
 
-    /* Titlebar */
-    --titlebar-height: 40px;
+    --app-content-dock-width: var(--app-titlebar-icon-width);;
+    --app-content-dock-icon-svg-size: 22px;
 
-    /* Content */
-    --content-dock-width: 44px;
-    --content-sidebar-width-min: 200px;
+    --app-content-sidebar-width: 200px;
 
-    /* Icons */
-    --titlebar-icon-size: 16px;
-    --dock-icon-size: 22px;
-    --icon-stroke: 1.5;
+    --app-content-terminal-height: 200px;
 
-    /* Workspace */
-    --workspace-terminal-height-min: 200px;
+
+
+    --app-dark-primary-background-color: #1e1e1e;
+    --app-dark-primary-foreground-color: #d4d4d4;
+    --app-dark-primary-separator-color: #404040;
+    
+    --app-dark-secondary-background-color: #303031;
+    --app-dark-secondary-foreground-color: #858585;
+    --app-dark-tertiary-background-color: #252526;
+    --app-dark-tertiary-foreground-color: #cccccc;
+
+    --app-dark-button-close-background-color-hover: rgba(255, 0, 0, 0.2);
+    --app-dark-button-background-color-hover: rgba(255, 255, 255, 0.1);
+    --app-dark-button-path-color-hover: var(--app-dark-primary-foreground-color);
 }
 
 html,
@@ -32,8 +35,8 @@ body {
     height: 100%;
     width: 100%;
 
-    background-color: var(--main-bg-color-dark);
-    color: var(--main-accent-color-light);
+    background-color: var(--app-dark-primary-background-color);
+    color: var(--app-dark-primary-foreground-color);
 }
 
 .app-container {
@@ -54,16 +57,21 @@ body {
     display: flex;
     flex-direction: row;
     width: 100%;
+    
+    border-top-style: solid;
+    border-top-width: 1px;
+    border-top-color: var(--app-dark-primary-separator-color);
 }
 
 .icon-button:hover {
-    background-color: var(--main-accent-color-dark);
+    color: var(--app-dark-button-path-color-hover);
+    background-color: var(--app-dark-button-background-color-hover);
 }
 
 .icon-button svg {
     stroke: currentColor;
     fill: none;
-    stroke-width: var(--icon-stroke);
+    stroke-width: var(--app-icon-svg-stroke);
     stroke-linecap: round;
     stroke-linejoin: round;
 }
@@ -76,17 +84,15 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    height: var(--titlebar-height);
+    min-height: var(--app-titlebar-height);
+    max-height: var(--app-titlebar-height);
     margin: 0;
     padding: 0;
 
     align-items: center;
     justify-content: right;
 
-    background-color: var(--main-bg-color-medium);
-    border-bottom-style: solid;
-    border-bottom-width: 1px;
-    border-bottom-color: var(--main-accent-color-dark);
+    background-color: var(--app-dark-secondary-background-color);
     user-select: none;
     -webkit-user-select: none;
     -webkit-app-region: drag;
@@ -96,9 +102,10 @@ body {
 .titlebar-button {
     display: flex;
     flex-flow:row;
-    width: var(--content-dock-width);
+    width: var(--app-titlebar-icon-width);
     height: 100%;
 
+    color: var(--app-dark-secondary-foreground-color);
     justify-content: center;
     align-items: center;
     user-select: text;
@@ -107,14 +114,20 @@ body {
 }
 
 .titlebar-button svg {
-    width: var(--titlebar-icon-size);
-    height: var(--titlebar-icon-size);
+    width: var(--app-titlebar-icon-svg-size);
+    height: var(--app-titlebar-icon-svg-size);
 }
+
+.titlebar-button:last-child:hover {
+    background-color: var(--app-dark-button-close-background-color-hover);
+}
+
 
 .content-dock {
     display: flex;
     flex-direction: column;
-    width: var(--content-dock-width);
+    min-width: var(--app-content-dock-width);
+    max-width: var(--app-content-dock-width);
     height: 100%;
     margin: 0px;
     padding: 0px;
@@ -122,10 +135,11 @@ body {
     align-items: center;
     justify-content: right;
 
-    background-color: var(--main-bg-color-medium);
+    color: var(--app-dark-secondary-foreground-color);
+    background-color: var(--app-dark-secondary-background-color);
     border-right-style: solid;
     border-right-width: 1px;
-    border-right-color: var(--main-accent-color-dark);
+    border-right-color: var(--app-dark-primary-separator-color);
 }
 
 /* .dock-section {
@@ -143,16 +157,16 @@ body {
 .dock-button {
     display: flex;
     flex-flow: column;
-    width: var(--content-dock-width);
-    height: var(--titlebar-height);
+    width: var(--app-content-dock-width);
+    height: var(--app-titlebar-height);
 
     justify-content: center;
     align-items: center;
 }
 
 .dock-button svg {
-    width: var(--dock-icon-size);
-    height: var(--dock-icon-size);
+    width: var(--app-content-dock-icon-svg-size);
+    height: var(--app-content-dock-icon-svg-size);
 }
 /* .content-sidebar {
     display: flex;
@@ -166,34 +180,34 @@ body {
     width: 100%;
 }
 
-/* .workspace {
+.workspace {
+    display: flex;
+    flex-direction: column;
     height: 100%;
-} */
-
-/* .workspace-control {
-    width: 100%;
+    
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--app-dark-primary-separator-color);
 }
 
 .workspace-breadcrumb {
-    width: 100%;
+    height: 100%;
 }
 
-.workspace-actions {
-    width: 100%;
+.workspace {
+    height: 100%;
 }
 
-.workspace-main {
-    width: 100%;
-}
-
-.workspace-terminal {
+.content-terminal {
+    display: flex;
+    flex-direction: column;
     height: 100%;
 }
 
 .terminal-actions {
-    width: 100%;
+    height: 100%;
 }
 
 .terminal {
-    width: 100%;
-} */
+    height: 100%;
+}
