@@ -110,6 +110,27 @@ class Main {
             app.quit();
         });
     }
+
+    static #dockButtonHandlers() {
+        ipcMain.handle('dock-file-symlink', (event) => {
+            console.log('dock-file-symlink');
+        });
+        ipcMain.handle('dock-folder-symlink', (event) => {
+            console.log('dock-folder-symlink');
+        });
+        ipcMain.handle('dock-folder-search', (event) => {
+            console.log('dock-folder-search');
+        });
+        ipcMain.handle('dock-terminal', (event) => {
+            console.log('dock-terminal');
+        });
+        ipcMain.handle('dock-help', (event) => {
+            console.log('dock-help');
+        });
+        ipcMain.handle('dock-settings', (event) => {
+            console.log('dock-settings');
+        });
+    }
 }
 
 Main.init();
