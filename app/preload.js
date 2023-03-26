@@ -12,10 +12,10 @@ class Preload {
         contextBridge.exposeInMainWorld('preload', {
             icons: (icons) => ipcRenderer.invoke('preload-icons', icons)
         });
-        contextBridge.exposeInMainWorld('buttons', {
-            minus: () => ipcRenderer.invoke('window-button-minimize'),
-            square: () => ipcRenderer.invoke('window-button-maximize'),
-            x: () => ipcRenderer.invoke('window-button-close'),
+        contextBridge.exposeInMainWorld('actions', {
+            windowMinimize: () => ipcRenderer.invoke('window-button-minimize'),
+            windowMaximize: () => ipcRenderer.invoke('window-button-maximize'),
+            windowClose: () => ipcRenderer.invoke('window-button-close'),
         });
     }
 }

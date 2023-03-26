@@ -20,7 +20,7 @@ class Renderer {
             const icon = icons[i];
             icon.innerHTML = resp[i];
             icon.addEventListener('click', () => {
-                window.buttons[icon.getAttribute('icon-name')]();
+                window.actions[icon.getAttribute('icon-name')]();
             });
         }
     }
