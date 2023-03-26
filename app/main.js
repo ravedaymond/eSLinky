@@ -1,7 +1,8 @@
-const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron');
+const { app, BrowserWindow, ipcMain, globalShortcut, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
+const ApplicationFileEncoding = { encoding: 'utf-8' };
 const KeyboardRefreshShortcuts = [
     'CmdOrCtrl+Shift+R',
     'Shift+F5',
@@ -11,23 +12,24 @@ const KeyboardRefreshShortcuts = [
     'F5'
 ];
 
-const settings = loadSettings();
-const loadSettings = () => {
-    const file = fs.readFileSync(path.join(`${__dirname}/config/settings.json`), { encoding: 'utf-8' });
-    return file;
-}
-
 class Main {
-    static #window;
-    static #devTools = { mode: 'bottom' };
 
-    static #settings;
+    static #settings = {
+        load: {
+            display: false,
+            msgBox: {},
+            err: undefined
+        },
+        eslinky: {}
+    };
+    static #appWindow;
 
     static init() {
+        Main.#loadSettingsJSON();
         app.whenReady().then(() => {
             // Disable all chromium refresh keyboard commands
             // globalShortcut.registerAll(KeyboardRefreshShortcuts, () => { 
-                //console.log('Chromium window refresh shortcuts are disabled.') 
+            //console.log('Chromium window refresh shortcuts are disabled.') 
             // });
 
             Main.#createWindow();
@@ -51,8 +53,60 @@ class Main {
         });
     }
 
+    static #loadSettingsJSON() {
+        const config = path.join(`${__dirname}/config/`);
+        const settings = path.join(config, 'settings.json');
+        const copyDefaultSettings = () => {
+            fs.copyFileSync(path.join(`${__dirname}/resource/templates/settings.default.json`), settings);
+        }
+        const loadSettings = () => {
+            const file = fs.readFileSync(settings, ApplicationFileEncoding);
+            console.log(JSON.parse(file));
+        }
+        if (!fs.existsSync(config)) { // Expected first time app start
+            fs.mkdirSync(config);
+            copyDefaultSettings();
+            Main.#settings.load.display = true;
+            Main.#settings.load.msgBox = {
+                message: 'Thank you for using eSLinky!',
+                type: 'info',
+                buttons: [],
+                defaultId: 0,
+                title: 'eSLinky: First time startup',
+                detail: ''
+            }
+        }
+        try {
+            loadSettings();
+        } catch (err) {
+            Main.#settings.load.display = true;
+            if (err.code === 'ENOENT') {
+                copyDefaultSettings();
+                Main.#settings.load.msgBox = {
+                    message: 'No settings.json file was found. Default settings.json file will be created.',
+                    type: 'warning',
+                    buttons: [],
+                    defaultId: 0,
+                    title: 'eSLinky: No settings.json file',
+                    detail: ''
+                }
+            } else {
+                const files = fs.readdirSync(config, ApplicationFileEncoding);
+                const backupDir = Date.now();
+                Main.#settings.load.msgBox = {
+                    message: 'Unable to load settings.json due to errors. Resolve errors within the file or delete it.',
+                    type: 'error',
+                    buttons: ['OK', 'Open File', 'Delete File'],
+                    defaultId: 1,
+                    title: 'eSLinky: Error loading settings.json',
+                    detail: 'If choosing to delete, existing files and directories will be backed up inside config/.old'
+                }
+            }
+        }
+    }
+
     static #createWindow() {
-        Main.#window = new BrowserWindow({
+        Main.#appWindow = new BrowserWindow({
             titleBarStyle: 'hidden',
             width: 800,
             height: 600,
@@ -64,62 +118,66 @@ class Main {
             },
         });
 
-        // Disable browser refresh keyboard shortcuts
-        Main.#window.on('focus', (event) => {
+        Main.#handlePreloadApiKey();
+        Main.#handleActionsApiKey();
 
-        })
-
-        Main.#preloadIconsHandler();
-        Main.#windowButtonHandlers();
-        Main.#window.loadURL(path.join(__dirname, 'index.html'));
+        Main.#appWindow.loadURL(path.join(__dirname, 'index.html'));
         // Do not show window until DOM and styling are loaded
-        Main.#window.once('ready-to-show', () => {
-            Main.#window.show();
+        Main.#appWindow.once('ready-to-show', () => {
+            Main.#appWindow.show();
+            if (Main.#settings.load.display) {
+                dialog.showMessageBoxSync(Main.#appWindow, Main.#settings.load.msgBox);
+            }
         });
 
         // Open Dev Tools
-        Main.#window.webContents.openDevTools(Main.#devTools);
+        // Main.#appWindow.webContents.openDevTools({ mode: 'detach' });
     }
 
-    static #preloadIconsHandler() {
-        // ipcMain.handleOnce('preload-icons', (event, icons) => {
+    static #handlePreloadApiKey() {
         ipcMain.handle('preload-icons', (event, icons) => {
+            // ipcMain.handleOnce('preload-icons', (event, icons) => {
             let resp = [];
             icons.forEach(icon => {
-                resp.push(fs.readFileSync(path.join(`${__dirname}/assets/svg/${icon}.svg`), { encoding: 'utf-8' }));
+                resp.push(fs.readFileSync(path.join(`${__dirname}/assets/svg/${icon}.svg`), ApplicationFileEncoding));
             });
             return resp;
         });
     }
 
-    static #windowButtonHandlers() {
-        ipcMain.handle('window-button-minimize', (event) => {
-            Main.#window.minimize();
+    static #handleActionsApiKey() {
+        Main.#handleTitleBarButtons();
+        Main.#handleDockButtons();
+    }
+
+    static #handleTitleBarButtons() {
+        ipcMain.handle('titlebar-minimize', (event) => {
+            Main.#appWindow.minimize();
         });
 
-        ipcMain.handle('window-button-maximize', (event) => {
-            if(Main.#window.isMaximized()) {
-                Main.#window.unmaximize();
+        ipcMain.handle('titlebar-maximize', (event) => {
+            if (Main.#appWindow.isMaximized()) {
+                Main.#appWindow.unmaximize();
                 // Additional if statement for dev tools.
                 // Noticed that when dev tools was open while maximized,
                 // minimizing would hide dev tools.
-                // if(Main.#window.webContents.isDevToolsOpened()) {
-                //     Main.#window.webContents.closeDevTools();
-                //     Main.#window.webContents.openDevTools(Main.#devTools)
+                // if(Main.#appWindow.webContents.isDevToolsOpened()) {
+                //     Main.#appWindow.webContents.closeDevTools();
+                //     Main.#appWindow.webContents.openDevTools(Main.#devTools)
                 // }
-            } else if(Main.#window.isFullScreen()) {
-                Main.#window.setFullScreen(false);
+            } else if (Main.#appWindow.isFullScreen()) {
+                Main.#appWindow.setFullScreen(false);
             } else {
-                Main.#window.maximize();
+                Main.#appWindow.maximize();
             }
         });
 
-        ipcMain.handle('window-button-close', (event) => {
+        ipcMain.handle('titlebar-close', (event) => {
             app.quit();
         });
     }
 
-    static #dockButtonHandlers() {
+    static #handleDockButtons() {
         ipcMain.handle('dock-file-symlink', (event) => {
             console.log('dock-file-symlink');
         });

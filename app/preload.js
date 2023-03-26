@@ -13,9 +13,9 @@ class Preload {
             icons: (icons) => ipcRenderer.invoke('preload-icons', icons)
         });
         contextBridge.exposeInMainWorld('actions', {
-            windowMinimize: () => ipcRenderer.invoke('window-button-minimize'),
-            windowMaximize: () => ipcRenderer.invoke('window-button-maximize'),
-            windowClose: () => ipcRenderer.invoke('window-button-close'),
+            titlebarMinimize: () => ipcRenderer.invoke('titlebar-minimize'),
+            titlebarMaximize: () => ipcRenderer.invoke('titlebar-maximize'),
+            titlebarClose: () => ipcRenderer.invoke('titlebar-close'),
             dockFileSymlink: () => ipcRenderer.invoke('dock-file-symlink'),
             dockFolderSymlink: () => ipcRenderer.invoke('dock-folder-symlink'),
             dockFolderSearch: () => ipcRenderer.invoke('dock-folder-search'),
