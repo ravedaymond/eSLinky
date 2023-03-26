@@ -1,4 +1,6 @@
 class Renderer {
+    static helpWindow;
+
     static init() {
         Renderer.#versions();
         Renderer.#preload();

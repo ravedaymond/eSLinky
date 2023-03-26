@@ -12,8 +12,9 @@ const KeyboardRefreshShortcuts = [
 ];
 
 class Main {
-    static #window;
-    static #devTools = { mode: 'bottom' };
+    static #appWindow;
+    static #helpWindow;
+    static #devToolsOptions = { mode: 'bottom' };
 
     static init() {
         app.whenReady().then(() => {
@@ -22,14 +23,14 @@ class Main {
                 //console.log('Chromium window refresh shortcuts are disabled.') 
             // });
 
-            Main.#createWindow();
+            Main.#createAppWindow();
             // Windows are only able to be created after the ready event. 
             // Listen for 'activate' events after the window has been created.
             app.on('activate', () => {
                 // On OS X it's common to re-create a window in the app when the
                 // dock icon is clicked and there are no other windows open.
                 if (BrowserWindow.getAllWindows().length === 0) {
-                    Main.#createWindow();
+                    Main.#createAppWindow();
                 }
             });
         });
@@ -43,8 +44,8 @@ class Main {
         });
     }
 
-    static #createWindow() {
-        Main.#window = new BrowserWindow({
+    static #createAppWindow() {
+        Main.#appWindow = new BrowserWindow({
             titleBarStyle: 'hidden',
             width: 800,
             height: 600,
@@ -56,21 +57,18 @@ class Main {
             },
         });
 
-        // Disable browser refresh keyboard shortcuts
-        Main.#window.on('focus', (event) => {
-
-        })
-
         Main.#preloadIconsHandler();
-        Main.#windowButtonHandlers();
-        Main.#window.loadURL(path.join(__dirname, 'index.html'));
+        Main.#appWindowButtonHandlers();
+        Main.#dockButtonHandlers();
+
+        Main.#appWindow.loadURL(path.join(__dirname, 'index.html'));
         // Do not show window until DOM and styling are loaded
-        Main.#window.once('ready-to-show', () => {
-            Main.#window.show();
+        Main.#appWindow.once('ready-to-show', () => {
+            Main.#appWindow.show();
         });
 
         // Open Dev Tools
-        Main.#window.webContents.openDevTools(Main.#devTools);
+        Main.#appWindow.webContents.openDevTools(Main.#devToolsOptions);
     }
 
     static #preloadIconsHandler() {
@@ -84,25 +82,25 @@ class Main {
         });
     }
 
-    static #windowButtonHandlers() {
+    static #appWindowButtonHandlers() {
         ipcMain.handle('window-button-minimize', (event) => {
-            Main.#window.minimize();
+            Main.#appWindow.minimize();
         });
 
         ipcMain.handle('window-button-maximize', (event) => {
-            if(Main.#window.isMaximized()) {
-                Main.#window.unmaximize();
+            if(Main.#appWindow.isMaximized()) {
+                Main.#appWindow.unmaximize();
                 // Additional if statement for dev tools.
                 // Noticed that when dev tools was open while maximized,
                 // minimizing would hide dev tools.
-                // if(Main.#window.webContents.isDevToolsOpened()) {
-                //     Main.#window.webContents.closeDevTools();
-                //     Main.#window.webContents.openDevTools(Main.#devTools)
+                // if(Main.#appWindow.webContents.isDevToolsOpened()) {
+                //     Main.#appWindow.webContents.closeDevTools();
+                //     Main.#appWindow.webContents.openDevTools(Main.#devToolsOptions)
                 // }
-            } else if(Main.#window.isFullScreen()) {
-                Main.#window.setFullScreen(false);
+            } else if(Main.#appWindow.isFullScreen()) {
+                Main.#appWindow.setFullScreen(false);
             } else {
-                Main.#window.maximize();
+                Main.#appWindow.maximize();
             }
         });
 
@@ -125,7 +123,21 @@ class Main {
             console.log('dock-terminal');
         });
         ipcMain.handle('dock-help', (event) => {
-            console.log('dock-help');
+            Main.#helpWindow = new BrowserWindow({
+                parent: Main.#appWindow,
+                modal: true,
+                title: 'About eSLink',
+                titleBarStyle: '',
+                width: 400,
+                height: 300,
+                resizable: false,
+                fullscreenable: false,
+                webPreferences: {
+                    sandbox: true,
+                    devTools: false
+                }
+            });
+            Main.#helpWindow.setMenuBarVisibility(false);
         });
         ipcMain.handle('dock-settings', (event) => {
             console.log('dock-settings');
