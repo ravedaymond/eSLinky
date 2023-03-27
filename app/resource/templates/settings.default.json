@@ -1,11 +1,28 @@
 {
-    "winslink": {
+    "eslinky": {
         "version": "",
         "preferences": {
-            "theme": "winslink"
+            "theme": "default-dark"
         },
+        "collections": {
+            "directories": [],
+            "files": []
+        },
+        "tags": [],
+        "links": {},
         "themes": {
-            "winslink": {}
+            "default-dark": {
+                "--app-dark-primary-background-color": "#1e1e1e",
+                "--app-dark-primary-foreground-color": "#d4d4d4",
+                "--app-dark-primary-separator-color": "#404040",
+                "--app-dark-secondary-background-color": "#303031",
+                "--app-dark-secondary-foreground-color": "#858585",
+                "--app-dark-tertiary-background-color": "#252526",
+                "--app-dark-tertiary-foreground-color": "#cccccc",
+                "--app-dark-button-close-background-color-hover": "rgba(255, 0, 0, 0.2)",
+                "--app-dark-button-background-color-hover": "rgba(255, 255, 255, 0.1)",
+                "--app-dark-button-path-color-hover": "var(--app-dark-primary-foreground-color)"
+            }
         }
     }
 }
