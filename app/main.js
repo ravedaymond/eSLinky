@@ -92,7 +92,7 @@ class Main {
                     buttons: ['OK', 'Open File', 'Delete File'],
                     defaultId: 1,
                     title: 'eSLinky: Error loading settings.json',
-                    detail: 'If deleting, existing files and directories will be backed in a unique directory inside `config/.old/`.'
+                    detail: `${err.message}\n\nIf deleting, existing files and directories will be backed in a unique directory inside \`config/.old/\`.`
                 });
                 if (choice < 1) {
                     app.quit();
@@ -114,23 +114,26 @@ class Main {
                                 const src = path.join(config, file.name);
                                 fs.renameSync(path.join(config, file.name), path.join(backup, file.name));
                             }
-                            throw new Error();
                         });
                         createSettingsFromTemplate();
                     } catch (err) {
                         const choice = dialog.showMessageBoxSync({
-                            message: 'Error creating backup of files within config directory. Recommend deleting the config directory complete.',
+                            message: 'Error creating backup of files in config. Recommend deleting the config directory complete.',
                             type: 'error',
-                            buttons: ['Delete config/', 'Not right now'],
+                            buttons: ['OK', 'Open Config', 'Delete Config'],
                             defaultId: 1,
-                            title: 'eSLinky: Error with config backup'
+                            title: 'eSLinky: Error with config backup',
+                            detail: `Warning: Deleting config will lose record of all links settings.json file. These links will still be live in your operating system.`
                         });
-                        if (choice < 1) {
+                        if(choice < 1) {
+                            app.quit();
+                        } else if (choice === 1) {
+                            shell.openPath(config);
+                            app.quit();
+                        } else if (choice >= 2) {
                             fs.rmSync(config, { recursive: true, force: true });
                             fs.mkdirSync(config);
                             createSettingsFromTemplate();
-                        } else {
-                            app.quit();
                         }
                     }
                 }
@@ -139,9 +142,13 @@ class Main {
     }
 
     static #createThemeCSS() {
-        const appliedTheme = JSON.stringify(Main.#settings.themes[Main.#settings.preferences.theme], null, 4)
-            .replaceAll('",', ';').replaceAll('"', '').replace(')\n}', ');\n}\n').replace('{', ':root {');
-        fs.writeFileSync(path.join(`${__dirname}/src/css/theme.css`), appliedTheme, { force: true });
+        try {
+            const appliedTheme = JSON.stringify(Main.#settings.themes[Main.#settings.preferences.theme], null, 4)
+                .replaceAll('",', ';').replaceAll('"', '').replace(')\n}', ');\n}\n').replace('{', ':root {');
+            fs.writeFileSync(path.join(`${__dirname}/src/css/theme.css`), appliedTheme, { force: true });
+        } catch (err) {
+            throw new Error('Unable to load requested theme. Recommend validating settings.json file.');
+        }
     }
 
     static #createWindow() {
