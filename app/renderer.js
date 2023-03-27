@@ -8,7 +8,7 @@ class Renderer {
         const electronInfo = document.getElementById('versions');
         electronInfo.innerText = `Chrome (v${window.versions.chrome()}); Node.js (v${window.versions.node()}); Electron (v${window.versions.electron});`;
     }
-
+    
     static async #preload() {
         const icons = document.getElementsByClassName('icon-button');
         let req = [];

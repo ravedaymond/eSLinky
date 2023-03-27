@@ -11,6 +11,8 @@ const KeyboardRefreshShortcuts = [
     'F5'
 ];
 
+let appliedTheme;
+
 class Main {
 
     static #settings = {};
@@ -18,7 +20,6 @@ class Main {
 
     static init() {
         app.whenReady().then(() => {
-
             // Disable all chromium refresh keyboard commands
             // globalShortcut.registerAll(KeyboardRefreshShortcuts, () => { 
             //console.log('Chromium window refresh shortcuts are disabled.') 
@@ -52,6 +53,7 @@ class Main {
         const template = path.join(`${__dirname}/resource/templates/settings.default.json`);
         const loadSettingsFromPath = (target) => {
             Main.#settings = JSON.parse(fs.readFileSync(target), { encoding: 'utf-8' }).eslinky;
+            Main.#createThemeCSS();
         }
         const createSettingsFromTemplate = () => {
             fs.copyFileSync(template, settings);
@@ -75,7 +77,7 @@ class Main {
             // Load default template settings before making any file based on the error.
             // This will allow all the error handling alerts to be handled in the app window dialogue with styling.
             // TODO: Move error message boxes to in-app styling.
-            loadSettingsFromPath(template); 
+            loadSettingsFromPath(template);
             if (err.code === 'ENOENT') {
                 createSettingsFromTemplate();
                 dialog.showMessageBoxSync({
@@ -134,6 +136,12 @@ class Main {
                 }
             }
         }
+    }
+
+    static #createThemeCSS() {
+        const appliedTheme = JSON.stringify(Main.#settings.themes[Main.#settings.preferences.theme], null, 4)
+            .replaceAll('",', ';').replaceAll('"', '').replace(')\n}', ');\n}\n').replace('{', ':root {');
+        fs.writeFileSync(path.join(`${__dirname}/src/css/theme.css`), appliedTheme, { force: true });
     }
 
     static #createWindow() {
