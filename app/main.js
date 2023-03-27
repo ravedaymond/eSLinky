@@ -1,8 +1,7 @@
-const { app, BrowserWindow, ipcMain, globalShortcut, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, globalShortcut, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
-const ApplicationFileEncoding = { encoding: 'utf-8' };
 const KeyboardRefreshShortcuts = [
     'CmdOrCtrl+Shift+R',
     'Shift+F5',
@@ -14,23 +13,17 @@ const KeyboardRefreshShortcuts = [
 
 class Main {
 
-    static #settings = {
-        load: {
-            display: false,
-            msgBox: {},
-            err: undefined
-        },
-        eslinky: {}
-    };
+    static #settings = {};
     static #appWindow;
 
     static init() {
-        Main.#loadSettingsJSON();
         app.whenReady().then(() => {
+
             // Disable all chromium refresh keyboard commands
             // globalShortcut.registerAll(KeyboardRefreshShortcuts, () => { 
             //console.log('Chromium window refresh shortcuts are disabled.') 
             // });
+            Main.#loadConfig();
 
             Main.#createWindow();
             // Windows are only able to be created after the ready event. 
@@ -53,53 +46,91 @@ class Main {
         });
     }
 
-    static #loadSettingsJSON() {
+    static #loadConfig() {
         const config = path.join(`${__dirname}/config/`);
         const settings = path.join(config, 'settings.json');
-        const copyDefaultSettings = () => {
-            fs.copyFileSync(path.join(`${__dirname}/resource/templates/settings.default.json`), settings);
+        const template = path.join(`${__dirname}/resource/templates/settings.default.json`);
+        const loadSettingsFile = (target) => {
+            Main.#settings = JSON.parse(fs.readFileSync(settings), { encoding: 'utf-8' }).eslinky;
         }
-        const loadSettings = () => {
-            const file = fs.readFileSync(settings, ApplicationFileEncoding);
-            console.log(JSON.parse(file));
+        const createDefaultSettings = () => {
+            fs.copyFileSync(template, settings);
         }
         if (!fs.existsSync(config)) { // Expected first time app start
             fs.mkdirSync(config);
-            copyDefaultSettings();
-            Main.#settings.load.display = true;
-            Main.#settings.load.msgBox = {
+            createDefaultSettings();
+            dialog.showMessageBoxSync({
                 message: 'Thank you for using eSLinky!',
                 type: 'info',
                 buttons: [],
                 defaultId: 0,
                 title: 'eSLinky: First time startup',
                 detail: ''
-            }
+            });
+            return;
         }
         try {
-            loadSettings();
+            loadSettingsFile(settings);
         } catch (err) {
-            Main.#settings.load.display = true;
+            // Load default template settings before making any file based on the error.
+            // This will allow all the error handling alerts to be handled in the app window dialogue with styling.
+            // TODO: Move error message boxes to in-app styling.
+            loadSettingsFile(template); 
             if (err.code === 'ENOENT') {
-                copyDefaultSettings();
-                Main.#settings.load.msgBox = {
+                createDefaultSettings();
+                dialog.showMessageBoxSync({
                     message: 'No settings.json file was found. Default settings.json file will be created.',
                     type: 'warning',
-                    buttons: [],
-                    defaultId: 0,
-                    title: 'eSLinky: No settings.json file',
-                    detail: ''
-                }
+                    title: 'eSLinky: No settings.json file'
+                });
             } else {
-                const files = fs.readdirSync(config, ApplicationFileEncoding);
-                const backupDir = Date.now();
-                Main.#settings.load.msgBox = {
+                const choice = dialog.showMessageBoxSync({
                     message: 'Unable to load settings.json due to errors. Resolve errors within the file or delete it.',
                     type: 'error',
                     buttons: ['OK', 'Open File', 'Delete File'],
                     defaultId: 1,
                     title: 'eSLinky: Error loading settings.json',
-                    detail: 'If choosing to delete, existing files and directories will be backed up inside config/.old'
+                    detail: 'If deleting, existing files and directories will be backed in a unique directory inside `config/.old/`.'
+                });
+                if (choice < 1) {
+                    app.quit();
+                    return;
+                } else if (choice === 1) {
+                    shell.openPath(settings);
+                    app.quit();
+                } else if (choice >= 2) {
+                    const files = fs.readdirSync(config, { encoding: 'utf-8', withFileTypes: true });
+                    const old = path.join(config, '.old');
+                    const backup = path.join(`${old}/${Date.now()}/`);
+                    if (!fs.existsSync(old)) {
+                        fs.mkdirSync(old);
+                    }
+                    fs.mkdirSync(path.join(backup));
+                    try {
+                        files.forEach(file => {
+                            if (file.name !== '.old') {
+                                const src = path.join(config, file.name);
+                                fs.renameSync(path.join(config, file.name), path.join(backup, file.name));
+                            }
+                            throw new Error();
+                        });
+                        createDefaultSettings();
+                    } catch (err) {
+                        const choice = dialog.showMessageBoxSync({
+                            message: 'Error creating backup of files within config directory. Recommend deleting the config directory complete.',
+                            type: 'error',
+                            buttons: ['Delete config/', 'Not right now'],
+                            defaultId: 1,
+                            title: 'eSLinky: Error with config backup'
+                        });
+                        if (choice < 1) {
+                            fs.rmSync(config, { recursive: true, force: true });
+                            fs.mkdirSync(config);
+                            createDefaultSettings();
+                        } else {
+                            app.quit();
+                        }
+                    }
                 }
             }
         }
@@ -125,9 +156,6 @@ class Main {
         // Do not show window until DOM and styling are loaded
         Main.#appWindow.once('ready-to-show', () => {
             Main.#appWindow.show();
-            if (Main.#settings.load.display) {
-                dialog.showMessageBoxSync(Main.#appWindow, Main.#settings.load.msgBox);
-            }
         });
 
         // Open Dev Tools
@@ -139,7 +167,7 @@ class Main {
             // ipcMain.handleOnce('preload-icons', (event, icons) => {
             let resp = [];
             icons.forEach(icon => {
-                resp.push(fs.readFileSync(path.join(`${__dirname}/assets/svg/${icon}.svg`), ApplicationFileEncoding));
+                resp.push(fs.readFileSync(path.join(`${__dirname}/assets/svg/${icon}.svg`), { encoding: 'utf-8' }));
             });
             return resp;
         });
