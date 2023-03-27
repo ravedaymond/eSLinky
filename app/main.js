@@ -23,7 +23,7 @@ class Main {
             // globalShortcut.registerAll(KeyboardRefreshShortcuts, () => { 
             //console.log('Chromium window refresh shortcuts are disabled.') 
             // });
-            Main.#loadConfig();
+            Main.#loadSettingsConfig();
 
             Main.#createWindow();
             // Windows are only able to be created after the ready event. 
@@ -46,19 +46,19 @@ class Main {
         });
     }
 
-    static #loadConfig() {
+    static #loadSettingsConfig() {
         const config = path.join(`${__dirname}/config/`);
         const settings = path.join(config, 'settings.json');
         const template = path.join(`${__dirname}/resource/templates/settings.default.json`);
-        const loadSettingsFile = (target) => {
-            Main.#settings = JSON.parse(fs.readFileSync(settings), { encoding: 'utf-8' }).eslinky;
+        const loadSettingsFromPath = (target) => {
+            Main.#settings = JSON.parse(fs.readFileSync(target), { encoding: 'utf-8' }).eslinky;
         }
-        const createDefaultSettings = () => {
+        const createSettingsFromTemplate = () => {
             fs.copyFileSync(template, settings);
         }
         if (!fs.existsSync(config)) { // Expected first time app start
             fs.mkdirSync(config);
-            createDefaultSettings();
+            createSettingsFromTemplate();
             dialog.showMessageBoxSync({
                 message: 'Thank you for using eSLinky!',
                 type: 'info',
@@ -70,14 +70,14 @@ class Main {
             return;
         }
         try {
-            loadSettingsFile(settings);
+            loadSettingsFromPath(settings);
         } catch (err) {
             // Load default template settings before making any file based on the error.
             // This will allow all the error handling alerts to be handled in the app window dialogue with styling.
             // TODO: Move error message boxes to in-app styling.
-            loadSettingsFile(template); 
+            loadSettingsFromPath(template); 
             if (err.code === 'ENOENT') {
-                createDefaultSettings();
+                createSettingsFromTemplate();
                 dialog.showMessageBoxSync({
                     message: 'No settings.json file was found. Default settings.json file will be created.',
                     type: 'warning',
@@ -114,7 +114,7 @@ class Main {
                             }
                             throw new Error();
                         });
-                        createDefaultSettings();
+                        createSettingsFromTemplate();
                     } catch (err) {
                         const choice = dialog.showMessageBoxSync({
                             message: 'Error creating backup of files within config directory. Recommend deleting the config directory complete.',
@@ -126,7 +126,7 @@ class Main {
                         if (choice < 1) {
                             fs.rmSync(config, { recursive: true, force: true });
                             fs.mkdirSync(config);
-                            createDefaultSettings();
+                            createSettingsFromTemplate();
                         } else {
                             app.quit();
                         }
