@@ -151,6 +151,12 @@ class Main {
         }
     }
 
+    static #saveSettings() {
+        const p = path.join(__dirname, 'config/settings.json');
+        fs.truncateSync(p);
+        fs.appendFileSync(p, JSON.stringify({ eslinky: Main.#settings }, null, 4));
+    }
+
     static #createWindow() {
         Main.#appWindow = new BrowserWindow({
             titleBarStyle: 'hidden',
