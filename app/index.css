@@ -13,6 +13,12 @@
     --app-content-sidebar-width: 200px;
 
     --app-content-terminal-height: 200px;
+
+    --app-workspace-table-padding-h: 40px;
+    --app-workspace-table-padding-v: 0;
+    --app-workspace-table-icon-svg-size: 18px;
+    --app-workspace-table-attributes-padding: 8px;
+
 }
 
 html,
@@ -22,8 +28,14 @@ body {
     height: 100%;
     width: 100%;
 
+    font-family: monospace;
+
     background-color: var(--app-dark-primary-background-color);
     color: var(--app-dark-primary-foreground-color);
+}
+
+.app-hide {
+    display: none !important;
 }
 
 .app-container {
@@ -50,12 +62,12 @@ body {
     border-top-color: var(--app-dark-primary-separator-color);
 }
 
-.icon-button:hover {
+.lucide-icon:hover {
     color: var(--app-dark-button-path-color-hover);
     background-color: var(--app-dark-button-background-color-hover);
 }
 
-.icon-button svg {
+.lucide-icon svg {
     stroke: currentColor;
     fill: none;
     stroke-width: var(--app-icon-svg-stroke);
@@ -109,7 +121,6 @@ body {
     background-color: var(--app-dark-button-close-background-color-hover);
 }
 
-
 .content-dock {
     display: flex;
     flex-direction: column;
@@ -151,10 +162,16 @@ body {
     align-items: center;
 }
 
+.dock-button:hover {
+    color: var(--app-dark-button-path-color-hover);
+    background-color: var(--app-dark-button-background-color-hover);
+}
+
 .dock-button svg {
     width: var(--app-content-dock-icon-svg-size);
     height: var(--app-content-dock-icon-svg-size);
 }
+
 /* .content-sidebar {
     display: flex;
     flex-direction: column;
@@ -181,8 +198,31 @@ body {
     height: 100%;
 }
 
-.workspace {
+.workspace-main {
     height: 100%;
+}
+
+table {
+    width: 100%;
+    padding: var(--app-workspace-table-padding-v) var(--app-workspace-table-padding-h);
+    text-align: left;
+}
+
+thead th {
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--app-dark-primary-separator-color);
+}
+
+.table-icon-container {
+    display: flex;
+    flex-direction: row;
+    width: calc(3*(var(--app-workspace-table-icon-svg-size)+var(--app-workspace-table-attributes-padding)));
+}
+
+.table-icon svg {
+    width: var(--app-workspace-table-icon-svg-size);
+    height: var(--app-workspace-table-icon-svg-size);
 }
 
 .content-terminal {

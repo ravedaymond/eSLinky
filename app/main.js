@@ -180,15 +180,15 @@ class Main {
         });
 
         // Open Dev Tools
-        // Main.#appWindow.webContents.openDevTools({ mode: 'detach' });
+        Main.#appWindow.webContents.openDevTools({ mode: 'undocked' });
     }
 
     static #handlePreloadApiKey() {
+        // ipcMain.handleOnce('preload-icons', (event, icons) => {
         ipcMain.handle('preload-icons', (event, icons) => {
-            // ipcMain.handleOnce('preload-icons', (event, icons) => {
             let resp = [];
             icons.forEach(icon => {
-                resp.push(fs.readFileSync(path.join(`${__dirname}/assets/svg/${icon}.svg`), { encoding: 'utf-8' }));
+                resp.push(Main.#DataUtil.getIconAsset(icon));
             });
             return resp;
         });
@@ -245,6 +245,28 @@ class Main {
         ipcMain.handle('dock-settings', (event) => {
             console.log('dock-settings');
         });
+    }
+
+    
+
+    static #DataUtil = class {
+        
+        static getIconAsset(icon) {
+            return fs.readFileSync(path.join(`${__dirname}/assets/svg/${icon}.svg`), { encoding: 'utf-8' });
+        }
+
+        makeTableRow(name, json) {
+            const icon = Main.#DataUtil.getIconAsset('tableActive'+(json.active ? 'True' : 'False'));
+            return `<tr>
+                <td><input class="data-checkbox" type="checkbox" /></td>
+                <td class="table-active">${icon}</td>
+                <td class="table-name">${name}</td>
+                <td class="table-desc">${json.description}</td>
+                <td class="table-tags">${json.tags}</td>
+                <td class="table-source">${json.link}</td>
+                <td class="table-target">${json.target}</td>
+            </tr>`;
+        }
     }
 }
 

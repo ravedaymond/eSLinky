@@ -10,7 +10,7 @@ class Renderer {
     }
     
     static async #preload() {
-        const icons = document.getElementsByClassName('icon-button');
+        const icons = document.getElementsByClassName('lucide-icon');
         let req = [];
         for (let i = 0; i < icons.length; i++) {
             req.push(icons[i].getAttribute('icon-name'));
