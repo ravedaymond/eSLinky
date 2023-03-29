@@ -50,7 +50,7 @@ class Main {
     static #loadSettingsConfig() {
         const config = path.join(`${__dirname}/config/`);
         const settings = path.join(config, 'settings.json');
-        const template = path.join(`${__dirname}/resource/templates/settings.default.json`);
+        const template = path.join(`${__dirname}src/resource/templates/settings.default.json`);
         const loadSettingsFromPath = (target) => {
             Main.#settings = JSON.parse(fs.readFileSync(target), { encoding: 'utf-8' }).eslinky;
             Main.#createThemeCSS();
@@ -157,6 +157,41 @@ class Main {
         fs.appendFileSync(p, JSON.stringify({ eslinky: Main.#settings }, null, 4));
     }
 
+    static #makeTableRow(link) {
+        const active = Main.#getIconAsset(`tableActive${(link.active ? 'True' : 'False')}`);
+        const type = Main.#getIconAsset(`tableType${(link.file ? 'File' : 'Folder')}`)
+
+        return `<tr>
+            <td>
+                <input class="data-checkbox" type="checkbox" />
+                <div class="table-icon-container">
+                    <div class="table-icon">${active}</div>
+                </div>
+            </td>
+            <td class="table-type">
+                <div class="table-icon-container">
+                    <div class="table-icon">${type}</div>
+                </div>
+            </td>
+            <td class="table-name">${link.name}</td>
+            <td class="table-description">${link.description}</td>
+            <td class="table-tags">${link.tags}</td>
+            <td class="table-attributes">
+                <div class="table-icon-container">
+                    <div class="table-icon"></div>
+                    <div class="table-icon"></div>
+                </div>
+            </td>
+            <td class="table-target">
+                <div class="table-icon-container">${link.target}</div>
+            </td>
+        </tr>`;
+    }
+
+    static #getIconAsset(icon) {
+        return fs.readFileSync(path.join(`${__dirname}/assets/svg/${icon}.svg`), { encoding: 'utf-8' });
+    }
+
     static #createWindow() {
         Main.#appWindow = new BrowserWindow({
             titleBarStyle: 'hidden',
@@ -180,17 +215,26 @@ class Main {
         });
 
         // Open Dev Tools
-        // Main.#appWindow.webContents.openDevTools({ mode: 'detach' });
+        Main.#appWindow.webContents.openDevTools({ mode: 'undocked' });
     }
 
     static #handlePreloadApiKey() {
+        // ipcMain.handleOnce('preload-icons', (event, icons) => {
         ipcMain.handle('preload-icons', (event, icons) => {
-            // ipcMain.handleOnce('preload-icons', (event, icons) => {
             let resp = [];
             icons.forEach(icon => {
-                resp.push(fs.readFileSync(path.join(`${__dirname}/assets/svg/${icon}.svg`), { encoding: 'utf-8' }));
+                resp.push(Main.#getIconAsset(icon));
             });
             return resp;
+        });
+        ipcMain.handle('preload-data', (event) => {
+            let data = Main.#Test.testData100();
+            // const data = Main.#settings.links;
+            let table = [];
+            data.forEach(link => {
+                table.push(Main.#makeTableRow(link));
+            });
+            return table;
         });
     }
 
@@ -246,6 +290,34 @@ class Main {
             console.log('dock-settings');
         });
     }
+
+    static #Test = class {
+
+        static testData25() {
+            return Main.#Test.#readMockData('25');
+        }
+
+        static testData50() {
+            return Main.#Test.#readMockData('50');
+        }
+
+        static testData100() {
+            return Main.#Test.#readMockData('100');
+        }
+
+        static testData200() {
+            return Main.#Test.#readMockData('200');
+        }
+
+        static testDataFull() {
+            return Main.#Test.#readMockData('DATA');
+        }
+
+        static #readMockData(file) {
+            return JSON.parse(fs.readFileSync(path.join(`${__dirname}/test/resource/MOCK_${file}.json`), { encoding: 'utf-8' }));
+        }
+    }
+
 }
 
 Main.init();
