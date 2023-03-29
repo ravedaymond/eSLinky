@@ -62,7 +62,7 @@ body {
     border-top-color: var(--app-dark-primary-separator-color);
 }
 
-.lucide-icon:hover {
+.titlebar-button:hover, .dock-button:hover {
     color: var(--app-dark-button-path-color-hover);
     background-color: var(--app-dark-button-background-color-hover);
 }
@@ -162,11 +162,6 @@ body {
     align-items: center;
 }
 
-.dock-button:hover {
-    color: var(--app-dark-button-path-color-hover);
-    background-color: var(--app-dark-button-background-color-hover);
-}
-
 .dock-button svg {
     width: var(--app-content-dock-icon-svg-size);
     height: var(--app-content-dock-icon-svg-size);
@@ -208,16 +203,38 @@ table {
     text-align: left;
 }
 
+thead tr {
+    display: flex;
+    flex-direction: row;
+    user-select: none;
+}
+
 thead th {
     border-bottom-style: solid;
     border-bottom-width: 1px;
     border-bottom-color: var(--app-dark-primary-separator-color);
 }
 
+.table-type {
+    width: 50px;
+    flex-grow: 1;
+}
+
+.table-name {
+    flex-grow: 3;
+}
+
+.table-description {
+    flex-grow: 2;
+}
+
+.table-tags {
+    flex-grow: 2;
+}
+
 .table-icon-container {
     display: flex;
     flex-direction: row;
-    width: calc(3*(var(--app-workspace-table-icon-svg-size)+var(--app-workspace-table-attributes-padding)));
 }
 
 .table-icon svg {

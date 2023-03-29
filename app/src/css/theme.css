@@ -2,6 +2,8 @@
     --app-dark-primary-background-color: #1e1e1e;
     --app-dark-primary-foreground-color: #d4d4d4;
     --app-dark-primary-separator-color: #404040;
+    --app-dark-primary-accent-static-color: #9feaf9;
+    --app-dark-primary-accent-hover-color: #00aeff;
     --app-dark-secondary-background-color: #303031;
     --app-dark-secondary-foreground-color: #858585;
     --app-dark-tertiary-background-color: #252526;
