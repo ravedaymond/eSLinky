@@ -11,7 +11,8 @@ class Preload {
             electron: process.versions.electron,
         });
         contextBridge.exposeInMainWorld('preload', {
-            icons: (icons) => ipcRenderer.invoke('preload-icons', icons)
+            icons: (icons) => ipcRenderer.invoke('preload-icons', icons),
+            data: () => ipcRenderer.invoke('preload-data')
         });
         contextBridge.exposeInMainWorld('actions', {
             titlebarMinimize: () => ipcRenderer.invoke('titlebar-minimize'),

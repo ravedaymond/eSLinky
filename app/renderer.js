@@ -10,6 +10,11 @@ class Renderer {
     }
     
     static async #preload() {
+        Renderer.#preloadIcons();
+        Renderer.#preloadData();
+    }
+
+    static async #preloadIcons() {
         const icons = document.getElementsByClassName('lucide-icon');
         let req = [];
         for (let i = 0; i < icons.length; i++) {
@@ -25,6 +30,13 @@ class Renderer {
         }
     }
 
+    static async #preloadData() {
+        const data = document.getElementsByClassName('table-data')[0];
+        const resp = await window.preload.data();
+        for(let i = 0; i < resp.length; i++) {
+            data.innerHTML = data.innerHTML+resp[i];
+        }
+    }
 }
 
 Renderer.init();
