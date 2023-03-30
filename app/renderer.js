@@ -31,7 +31,7 @@ class Renderer {
     }
 
     static async #preloadData() {
-        const data = document.getElementsByClassName('table-data')[0];
+        const data = document.getElementsByClassName('main-table-data')[0];
         const resp = await window.preload.data();
         for(let i = 0; i < resp.length; i++) {
             data.innerHTML = data.innerHTML+resp[i];
