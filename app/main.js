@@ -157,34 +157,28 @@ class Main {
         fs.appendFileSync(p, JSON.stringify({ eslinky: Main.#settings }, null, 4));
     }
 
-    static #makeTableRow(link) {
-        const active = Main.#getIconAsset(`tableActive${(link.active ? 'True' : 'False')}`);
+    static #makeTableRow(link, assets) {
         const type = Main.#getIconAsset(`tableType${(link.file ? 'File' : 'Folder')}`)
-
+        const target = fs.existsSync(link.target); // Check if target exists
+        // const link = fs.existsSync() // Check if links containing directory exists
         return `<tr>
             <td>
                 <input class="data-checkbox" type="checkbox" />
-                <div class="table-icon-container">
-                    <div class="table-icon">${active}</div>
-                </div>
             </td>
-            <td class="table-type">
-                <div class="table-icon-container">
-                    <div class="table-icon">${type}</div>
-                </div>
-            </td>
-            <td class="table-name">${link.name}</td>
-            <td class="table-description">${link.description}</td>
-            <td class="table-tags">${link.tags}</td>
             <td class="table-attributes">
-                <div class="table-icon-container">
-                    <div class="table-icon"></div>
-                    <div class="table-icon"></div>
-                </div>
+                <div class="table-icon">${type}</div>
+                <div class="table-icon table-icon-${target ? '' : 'inactive'}">${assets.target}</div>
+                <div class="table-icon table-icon-${link.active ? 'active' : 'inactive'}">${assets.active}</div>
+                <div class="table-icon table-icon-${link.hard ? 'active' : 'inactive'}">${assets.hard}</div>
+                <div class="table-icon table-icon-${link.junction ? 'active' : 'inactive'}">${assets.junction}</div>
             </td>
-            <td class="table-target">
-                <div class="table-icon-container">${link.target}</div>
+            <td class="table-name">
+                <input type="text" minlength="1" maxlength="32" value="${link.name}" />
             </td>
+            <td class="table-description">
+                <input type="text" value="${link.description}" />
+            </td>
+            <td class="table-tags">${link.tags}</td>
         </tr>`;
     }
 
@@ -230,9 +224,15 @@ class Main {
         ipcMain.handle('preload-data', (event) => {
             let data = Main.#Test.testData100();
             // const data = Main.#settings.links;
+            
             let table = [];
             data.forEach(link => {
-                table.push(Main.#makeTableRow(link));
+                table.push(Main.#makeTableRow(link, {
+                    target: Main.#getIconAsset('tableTarget'),
+                    active: Main.#getIconAsset('tableActive'), 
+                    hard: Main.#getIconAsset('tableHard'), 
+                    junction: Main.#getIconAsset('tableJunction')
+                }));
             });
             return table;
         });
