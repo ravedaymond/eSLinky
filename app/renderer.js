@@ -32,9 +32,14 @@ class Renderer {
 
     static async #preloadData() {
         const data = document.getElementsByClassName('main-table-data')[0];
+        const pages = document.getElementsByClassName('table-pager-numbers')[0];
         const resp = await window.preload.data();
-        for(let i = 0; i < resp.length; i++) {
-            data.innerHTML = data.innerHTML+resp[i];
+        for(let i = 0; i < resp.pages.length; i++) {
+            pages.innerHTML = pages.innerHTML+resp.pages[i];
+            console.log(pages[i]);
+        }
+        for(let i = 0; i < resp.table.length; i++) {
+            data.innerHTML = data.innerHTML+resp.table[i];
         }
     }
 }

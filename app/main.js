@@ -17,6 +17,11 @@ class Main {
 
     static #settings = {};
     static #appWindow;
+    static #pagination = {
+        current: 0,
+        pages: 0,
+        perPage: 25
+    }
 
     static init() {
         app.whenReady().then(() => {
@@ -25,6 +30,7 @@ class Main {
             //console.log('Chromium window refresh shortcuts are disabled.') 
             // });
             Main.#loadSettingsConfig();
+            Main.#updatePaginationDetails();
 
             Main.#createWindow();
             // Windows are only able to be created after the ready event. 
@@ -125,7 +131,7 @@ class Main {
                             title: 'eSLinky: Error with config backup',
                             detail: `Warning: Deleting config will lose record of all links settings.json file. These links will still be live in your operating system.`
                         });
-                        if(choice < 1) {
+                        if (choice < 1) {
                             app.quit();
                         } else if (choice === 1) {
                             shell.openPath(config);
@@ -149,6 +155,24 @@ class Main {
         } catch (err) {
             throw new Error('Unable to load requested theme. Recommend validating settings.json file.');
         }
+    }
+
+    static #updatePaginationDetails() {
+        // const records = Main.#settings.links.length;
+        const records = 92;
+        const remainder = (records % Main.#pagination.perPage);
+        Main.#pagination.pages = (records - remainder) / Main.#pagination.perPage
+            + ((remainder > 0) ? 1 : 0);
+    }
+
+    static #makePagingHTML() {
+        let resp = [];
+        for(let i = 0; i < Main.#pagination.pages; i++) {
+            resp.push(
+                `<a class="pager-number">${i+1}</a>`
+            )
+        }
+        return resp;
     }
 
     static #saveSettings() {
@@ -224,17 +248,21 @@ class Main {
         ipcMain.handle('preload-data', (event) => {
             let data = Main.#Test.testData100();
             // const data = Main.#settings.links;
-            
-            let table = [];
+            Main.#updatePaginationDetails();
+
+            const resp = {
+                pages: Main.#makePagingHTML(),
+                table: [],
+            }
             data.forEach(link => {
-                table.push(Main.#makeTableRow(link, {
+                resp.table.push(Main.#makeTableRow(link, {
                     target: Main.#getIconAsset('tableTarget'),
-                    active: Main.#getIconAsset('tableActive'), 
-                    hard: Main.#getIconAsset('tableHard'), 
+                    active: Main.#getIconAsset('tableActive'),
+                    hard: Main.#getIconAsset('tableHard'),
                     junction: Main.#getIconAsset('tableJunction')
                 }));
             });
-            return table;
+            return resp;
         });
     }
 
@@ -288,6 +316,18 @@ class Main {
         });
         ipcMain.handle('dock-settings', (event) => {
             console.log('dock-settings');
+        });
+        ipcMain.handle('pager-first', (event) => {
+            console.log('pager-first');
+        });
+        ipcMain.handle('pager-previous', (event) => {
+            console.log('pager-previous');
+        });
+        ipcMain.handle('pager-next', (event) => {
+            console.log('pager-next');
+        });
+        ipcMain.handle('pager-last', (event) => {
+            console.log('pager-last');
         });
     }
 

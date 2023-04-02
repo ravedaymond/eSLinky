@@ -24,6 +24,10 @@ class Preload {
             dockTerminal: () => ipcRenderer.invoke('dock-terminal'),
             dockHelp: () => ipcRenderer.invoke('dock-help'),
             dockSettings: () => ipcRenderer.invoke('dock-settings'),
+            pagerFirst: () => ipcRenderer.invoke('pager-first'),
+            pagerPrevious: () => ipcRenderer.invoke('pager-previous'),
+            pagerNext: () => ipcRenderer.invoke('pager-next'),
+            pagerLast: () => ipcRenderer.invoke('pager-last'),
         });
     }
 }

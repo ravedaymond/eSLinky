@@ -114,7 +114,7 @@ body {
     stroke-width: var(--app-titlebar-icon-svg-stroke-width);
 }
 
-.titlebar-button:hover, .dock-button:hover {
+.titlebar-button:hover, .dock-button:hover, .pager-button:hover {
     color: var(--app-dark-button-path-color-hover);
     background-color: var(--app-dark-button-background-color-hover);
 }
@@ -248,6 +248,7 @@ body {
     flex-direction: column;
     height: 100%;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .main-table-data tr {
@@ -275,10 +276,7 @@ body {
 .table-name {
     min-width: 128px;
     max-width: 128px;
-}
-
-.table-description {
-    flex-grow: 1;
+    margin: 0 4px;
 }
 
 .table-name input, .table-description input {
@@ -298,7 +296,6 @@ body {
 
 body ::-webkit-scrollbar {
     width: 12px;
-    /* width of the entire scrollbar */
 }
 
 body ::-webkit-scrollbar-track {
@@ -344,16 +341,14 @@ body ::-webkit-scrollbar-thumb:hover {
     border-top: 1px solid var(--app-dark-primary-separator-color);
 }
 
-/* .main-table-pager tr {
+.main-table-pager tr, .main-table-pager td {
     display: flex;
     flex-direction: row;
+    justify-content: center;
 }
 
-.table-pager-buttons,
-.pager-buttons-left,
-.pager-buttons-right {
-    display: flex;
-    flex-direction: row;
+/* .pager-button {
+
 } */
 
 .content-terminal {
