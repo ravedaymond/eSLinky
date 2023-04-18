@@ -39,6 +39,8 @@
 
     --app-content-container-height: calc(100% - var(--app-titlebar-height));
     --app-content-width: calc(100% - var(--app-content-dock-width));
+
+    --app-paging-font-size: 18px;
 }
 
 html,
@@ -339,12 +341,28 @@ body ::-webkit-scrollbar-thumb:hover {
     display: flex;
     flex-direction: column;
     border-top: 1px solid var(--app-dark-primary-separator-color);
+    user-select: none;
 }
 
 .main-table-pager tr, .main-table-pager td {
     display: flex;
     flex-direction: row;
     justify-content: center;
+    align-items: center;
+}
+
+.table-pager-numbers :first-child {
+    margin-left: 8px;
+}
+
+.table-pager-numbers :last-child {
+    margin-right: 8px;
+}
+
+.pager-number {
+    width: 24px;
+    font-size: var(--app-paging-font-size);
+    text-align: center;
 }
 
 /* .pager-button {

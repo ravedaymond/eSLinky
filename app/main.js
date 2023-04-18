@@ -20,7 +20,7 @@ class Main {
     static #pagination = {
         current: 0,
         pages: 0,
-        perPage: 25
+        perPage: 34
     }
 
     static init() {
@@ -29,8 +29,8 @@ class Main {
             // globalShortcut.registerAll(KeyboardRefreshShortcuts, () => { 
             //console.log('Chromium window refresh shortcuts are disabled.') 
             // });
-            Main.#loadSettingsConfig();
-            Main.#updatePaginationDetails();
+            Main.#settingsLoad();
+            Main.#paginationInit();
 
             Main.#createWindow();
             // Windows are only able to be created after the ready event. 
@@ -53,13 +53,138 @@ class Main {
         });
     }
 
-    static #loadSettingsConfig() {
+    static #createWindow() {
+        Main.#appWindow = new BrowserWindow({
+            titleBarStyle: 'hidden',
+            width: 800,
+            height: 600,
+            show: false,
+            webPreferences: {
+                sandbox: true,
+                devTools: true,
+                preload: path.join(__dirname, 'preload.js'),
+            },
+        });
+
+        Main.#preloadHandler();
+        Main.#actionsHandler();
+
+        Main.#appWindow.loadURL(path.join(__dirname, 'index.html'));
+        // Do not show window until DOM and styling are loaded
+        Main.#appWindow.once('ready-to-show', () => {
+            Main.#appWindow.show();
+        });
+
+        // Open Dev Tools
+        Main.#appWindow.webContents.openDevTools({ mode: 'undocked' });
+    }
+
+    static #preloadHandler() {
+        // ipcMain.handleOnce('preload-icons', (event, icons) => {
+        ipcMain.handle('preload-icons', (event, icons) => {
+            let resp = [];
+            icons.forEach(icon => {
+                resp.push(Main.#preloadAssetIconSVG(icon));
+            });
+            return resp;
+        });
+        ipcMain.handle('preload-data', (event) => {
+            let data = Main.#Test.testData100();
+            // const data = Main.#settings.links;
+            Main.#paginationInit();
+
+            const resp = {
+                pages: Main.#paginationCreatePageNumbersHTML(),
+                table: [],
+            }
+            data.forEach(link => {
+                resp.table.push(Main.#dataCreateTableRowHTML(link, {
+                    target: Main.#preloadAssetIconSVG('tableTarget'),
+                    active: Main.#preloadAssetIconSVG('tableActive'),
+                    hard: Main.#preloadAssetIconSVG('tableHard'),
+                    junction: Main.#preloadAssetIconSVG('tableJunction')
+                }));
+            });
+            return resp;
+        });
+    }
+
+    static #preloadAssetIconSVG(icon) {
+        return fs.readFileSync(path.join(`${__dirname}/assets/svg/${icon}.svg`), { encoding: 'utf-8' });
+    }
+
+    static #actionsHandler() {
+        Main.#actionsTitleBar();
+        Main.#actionsDock();
+    }
+
+    static #actionsTitleBar() {
+        ipcMain.handle('titlebar-minimize', (event) => {
+            Main.#appWindow.minimize();
+        });
+
+        ipcMain.handle('titlebar-maximize', (event) => {
+            if (Main.#appWindow.isMaximized()) {
+                Main.#appWindow.unmaximize();
+                // Additional if statement for dev tools.
+                // Noticed that when dev tools was open while maximized,
+                // minimizing would hide dev tools.
+                // if(Main.#appWindow.webContents.isDevToolsOpened()) {
+                //     Main.#appWindow.webContents.closeDevTools();
+                //     Main.#appWindow.webContents.openDevTools(Main.#devTools)
+                // }
+            } else if (Main.#appWindow.isFullScreen()) {
+                Main.#appWindow.setFullScreen(false);
+            } else {
+                Main.#appWindow.maximize();
+            }
+        });
+
+        ipcMain.handle('titlebar-close', (event) => {
+            app.quit();
+        });
+    }
+
+    static #actionsDock() {
+        ipcMain.handle('dock-file-symlink', (event) => {
+            console.log('dock-file-symlink');
+        });
+        ipcMain.handle('dock-folder-symlink', (event) => {
+            console.log('dock-folder-symlink');
+        });
+        ipcMain.handle('dock-folder-search', (event) => {
+            console.log('dock-folder-search');
+        });
+        ipcMain.handle('dock-terminal', (event) => {
+            console.log('dock-terminal');
+        });
+        ipcMain.handle('dock-help', (event) => {
+            console.log('dock-help');
+        });
+        ipcMain.handle('dock-settings', (event) => {
+            console.log('dock-settings');
+        });
+        ipcMain.handle('pager-first', (event) => {
+            console.log('pager-first');
+        });
+        ipcMain.handle('pager-previous', (event) => {
+            Main.#paginationLoadPageData(-1);
+        });
+        ipcMain.handle('pager-next', (event) => {
+            Main.#paginationLoadPageData(1);
+        });
+        ipcMain.handle('pager-last', (event) => {
+            console.log('pager-last');
+        });
+    }
+
+    static #settingsLoad() {
         const config = path.join(`${__dirname}/config/`);
         const settings = path.join(config, 'settings.json');
         const template = path.join(`${__dirname}src/resource/templates/settings.default.json`);
         const loadSettingsFromPath = (target) => {
             Main.#settings = JSON.parse(fs.readFileSync(target), { encoding: 'utf-8' }).eslinky;
-            Main.#createThemeCSS();
+            Main.#themeCreateCSS();
         }
         const createSettingsFromTemplate = () => {
             fs.copyFileSync(template, settings);
@@ -147,7 +272,13 @@ class Main {
         }
     }
 
-    static #createThemeCSS() {
+    static #settingsSave() {
+        const p = path.join(__dirname, 'config/settings.json');
+        fs.truncateSync(p);
+        fs.appendFileSync(p, JSON.stringify({ eslinky: Main.#settings }, null, 4));
+    }
+
+    static #themeCreateCSS() {
         try {
             const appliedTheme = JSON.stringify(Main.#settings.themes[Main.#settings.preferences.theme], null, 4)
                 .replaceAll('",', ';').replaceAll('"', '').replace(')\n}', ');\n}\n').replace('{', ':root {');
@@ -157,32 +288,8 @@ class Main {
         }
     }
 
-    static #updatePaginationDetails() {
-        // const records = Main.#settings.links.length;
-        const records = 92;
-        const remainder = (records % Main.#pagination.perPage);
-        Main.#pagination.pages = (records - remainder) / Main.#pagination.perPage
-            + ((remainder > 0) ? 1 : 0);
-    }
-
-    static #makePagingHTML() {
-        let resp = [];
-        for(let i = 0; i < Main.#pagination.pages; i++) {
-            resp.push(
-                `<a class="pager-number">${i+1}</a>`
-            )
-        }
-        return resp;
-    }
-
-    static #saveSettings() {
-        const p = path.join(__dirname, 'config/settings.json');
-        fs.truncateSync(p);
-        fs.appendFileSync(p, JSON.stringify({ eslinky: Main.#settings }, null, 4));
-    }
-
-    static #makeTableRow(link, assets) {
-        const type = Main.#getIconAsset(`tableType${(link.file ? 'File' : 'Folder')}`)
+    static #dataCreateTableRowHTML(link, assets) {
+        const type = Main.#preloadAssetIconSVG(`tableType${(link.file ? 'File' : 'Folder')}`)
         const target = fs.existsSync(link.target); // Check if target exists
         // const link = fs.existsSync() // Check if links containing directory exists
         return `<tr>
@@ -206,129 +313,30 @@ class Main {
         </tr>`;
     }
 
-    static #getIconAsset(icon) {
-        return fs.readFileSync(path.join(`${__dirname}/assets/svg/${icon}.svg`), { encoding: 'utf-8' });
+    static #paginationInit() {
+        // const records = Main.#settings.links.length;
+        const records = 92;
+        const remainder = (records % Main.#pagination.perPage);
+        Main.#pagination.pages = (records - remainder) / Main.#pagination.perPage
+            + ((remainder > 0) ? 1 : 0);
     }
 
-    static #createWindow() {
-        Main.#appWindow = new BrowserWindow({
-            titleBarStyle: 'hidden',
-            width: 800,
-            height: 600,
-            show: false,
-            webPreferences: {
-                sandbox: true,
-                devTools: true,
-                preload: path.join(__dirname, 'preload.js'),
-            },
-        });
-
-        Main.#handlePreloadApiKey();
-        Main.#handleActionsApiKey();
-
-        Main.#appWindow.loadURL(path.join(__dirname, 'index.html'));
-        // Do not show window until DOM and styling are loaded
-        Main.#appWindow.once('ready-to-show', () => {
-            Main.#appWindow.show();
-        });
-
-        // Open Dev Tools
-        Main.#appWindow.webContents.openDevTools({ mode: 'undocked' });
+    static #paginationCreatePageNumbersHTML() {
+        let resp = [];
+        for (let i = 0; i < Main.#pagination.pages; i++) {
+            resp.push(
+                `<div class="pager-number pager-button">${i + 1}</div>`
+            )
+        }
+        return resp;
     }
 
-    static #handlePreloadApiKey() {
-        // ipcMain.handleOnce('preload-icons', (event, icons) => {
-        ipcMain.handle('preload-icons', (event, icons) => {
-            let resp = [];
-            icons.forEach(icon => {
-                resp.push(Main.#getIconAsset(icon));
-            });
-            return resp;
-        });
-        ipcMain.handle('preload-data', (event) => {
-            let data = Main.#Test.testData100();
-            // const data = Main.#settings.links;
-            Main.#updatePaginationDetails();
-
-            const resp = {
-                pages: Main.#makePagingHTML(),
-                table: [],
-            }
-            data.forEach(link => {
-                resp.table.push(Main.#makeTableRow(link, {
-                    target: Main.#getIconAsset('tableTarget'),
-                    active: Main.#getIconAsset('tableActive'),
-                    hard: Main.#getIconAsset('tableHard'),
-                    junction: Main.#getIconAsset('tableJunction')
-                }));
-            });
-            return resp;
-        });
-    }
-
-    static #handleActionsApiKey() {
-        Main.#handleTitleBarButtons();
-        Main.#handleDockButtons();
-    }
-
-    static #handleTitleBarButtons() {
-        ipcMain.handle('titlebar-minimize', (event) => {
-            Main.#appWindow.minimize();
-        });
-
-        ipcMain.handle('titlebar-maximize', (event) => {
-            if (Main.#appWindow.isMaximized()) {
-                Main.#appWindow.unmaximize();
-                // Additional if statement for dev tools.
-                // Noticed that when dev tools was open while maximized,
-                // minimizing would hide dev tools.
-                // if(Main.#appWindow.webContents.isDevToolsOpened()) {
-                //     Main.#appWindow.webContents.closeDevTools();
-                //     Main.#appWindow.webContents.openDevTools(Main.#devTools)
-                // }
-            } else if (Main.#appWindow.isFullScreen()) {
-                Main.#appWindow.setFullScreen(false);
-            } else {
-                Main.#appWindow.maximize();
-            }
-        });
-
-        ipcMain.handle('titlebar-close', (event) => {
-            app.quit();
-        });
-    }
-
-    static #handleDockButtons() {
-        ipcMain.handle('dock-file-symlink', (event) => {
-            console.log('dock-file-symlink');
-        });
-        ipcMain.handle('dock-folder-symlink', (event) => {
-            console.log('dock-folder-symlink');
-        });
-        ipcMain.handle('dock-folder-search', (event) => {
-            console.log('dock-folder-search');
-        });
-        ipcMain.handle('dock-terminal', (event) => {
-            console.log('dock-terminal');
-        });
-        ipcMain.handle('dock-help', (event) => {
-            console.log('dock-help');
-        });
-        ipcMain.handle('dock-settings', (event) => {
-            console.log('dock-settings');
-        });
-        ipcMain.handle('pager-first', (event) => {
-            console.log('pager-first');
-        });
-        ipcMain.handle('pager-previous', (event) => {
-            console.log('pager-previous');
-        });
-        ipcMain.handle('pager-next', (event) => {
-            console.log('pager-next');
-        });
-        ipcMain.handle('pager-last', (event) => {
-            console.log('pager-last');
-        });
+    static #paginationLoadPageData(value) {
+        const page = Main.#pagination.current + value;
+        // Do nothing if requested page is out of bounds
+        if (page < 0 || page >= Main.#pagination.pages) { return; }
+        // Update data being shown with new page data
+        Main.#pagination.current = page;
     }
 
     static #Test = class {
