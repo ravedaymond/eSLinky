@@ -19,8 +19,8 @@ class Main {
     static #appWindow;
     static #pagination = {
         current: 0,
-        pages: 0,
-        perPage: 34
+        pages: 1,
+        perPage: 5
     }
 
     static init() {
@@ -84,38 +84,22 @@ class Main {
         ipcMain.handle('preload-icons', (event, icons) => {
             let resp = [];
             icons.forEach(icon => {
-                resp.push(Main.#preloadAssetIconSVG(icon));
+                resp.push(Main.#assetLoadIconSVG(icon));
             });
             return resp;
         });
         ipcMain.handle('preload-data', (event) => {
-            let data = Main.#Test.testData100();
-            // const data = Main.#settings.links;
-            Main.#paginationInit();
-
-            const resp = {
-                pages: Main.#paginationCreatePageNumbersHTML(),
-                table: [],
-            }
-            data.forEach(link => {
-                resp.table.push(Main.#dataCreateTableRowHTML(link, {
-                    target: Main.#preloadAssetIconSVG('tableTarget'),
-                    active: Main.#preloadAssetIconSVG('tableActive'),
-                    hard: Main.#preloadAssetIconSVG('tableHard'),
-                    junction: Main.#preloadAssetIconSVG('tableJunction')
-                }));
-            });
-            return resp;
+            return {
+                pageHTML: Main.#paginationCreatePageNumbersHTML(),
+                tableData: Main.#paginationLoadPageData(0)
+            };
         });
-    }
-
-    static #preloadAssetIconSVG(icon) {
-        return fs.readFileSync(path.join(`${__dirname}/assets/svg/${icon}.svg`), { encoding: 'utf-8' });
     }
 
     static #actionsHandler() {
         Main.#actionsTitleBar();
         Main.#actionsDock();
+        Main.#actionsPager();
     }
 
     static #actionsTitleBar() {
@@ -164,18 +148,43 @@ class Main {
         ipcMain.handle('dock-settings', (event) => {
             console.log('dock-settings');
         });
+    }
+    
+    static #actionsPager() {
         ipcMain.handle('pager-first', (event) => {
-            console.log('pager-first');
+            const p = Main.#pagination.current*-1;
+            const resp = {
+                data: Main.#paginationLoadPageData(p),
+                page: Main.#pagination.current
+            }
+            return resp;
         });
         ipcMain.handle('pager-previous', (event) => {
-            Main.#paginationLoadPageData(-1);
+            const resp = {
+                data: Main.#paginationLoadPageData(-1),
+                page: Main.#pagination.current
+            }
+            return resp;
         });
         ipcMain.handle('pager-next', (event) => {
-            Main.#paginationLoadPageData(1);
+            const resp = {
+                data: Main.#paginationLoadPageData(1),
+                page: Main.#pagination.current
+            }
+            return resp;
         });
         ipcMain.handle('pager-last', (event) => {
-            console.log('pager-last');
+            const p = Main.#pagination.pages - 1;
+            const resp = {
+                data: Main.#paginationLoadPageData(p),
+                page: p
+            }
+            return resp;
         });
+    }
+
+    static #assetLoadIconSVG(icon) {
+        return fs.readFileSync(path.join(`${__dirname}/assets/svg/${icon}.svg`), { encoding: 'utf-8' });
     }
 
     static #settingsLoad() {
@@ -289,7 +298,7 @@ class Main {
     }
 
     static #dataCreateTableRowHTML(link, assets) {
-        const type = Main.#preloadAssetIconSVG(`tableType${(link.file ? 'File' : 'Folder')}`)
+        const type = Main.#assetLoadIconSVG(`tableType${(link.file ? 'File' : 'Folder')}`)
         const target = fs.existsSync(link.target); // Check if target exists
         // const link = fs.existsSync() // Check if links containing directory exists
         return `<tr>
@@ -314,8 +323,9 @@ class Main {
     }
 
     static #paginationInit() {
-        // const records = Main.#settings.links.length;
-        const records = 92;
+        // ### LOCAL TEST DATA ONLY
+        Main.#settings.links = Main.#Test.testData100();
+        const records = Main.#settings.links.length;
         const remainder = (records % Main.#pagination.perPage);
         Main.#pagination.pages = (records - remainder) / Main.#pagination.perPage
             + ((remainder > 0) ? 1 : 0);
@@ -332,11 +342,23 @@ class Main {
     }
 
     static #paginationLoadPageData(value) {
+        const data = [];
         const page = Main.#pagination.current + value;
-        // Do nothing if requested page is out of bounds
-        if (page < 0 || page >= Main.#pagination.pages) { return; }
-        // Update data being shown with new page data
-        Main.#pagination.current = page;
+        if (page >= 0 && page < Main.#pagination.pages) {
+            Main.#pagination.current = page;
+            const begin = Main.#pagination.current*Main.#pagination.perPage;
+            const end = (begin+Main.#pagination.perPage);
+            console.log('begin', begin, 'end', end);
+            Main.#settings.links.slice(begin, end).forEach(link => {
+                data.push(Main.#dataCreateTableRowHTML(link, {
+                    target: Main.#assetLoadIconSVG('tableTarget'),
+                    active: Main.#assetLoadIconSVG('tableActive'),
+                    hard: Main.#assetLoadIconSVG('tableHard'),
+                    junction: Main.#assetLoadIconSVG('tableJunction')
+                }));
+            });
+        }
+        return data;
     }
 
     static #Test = class {

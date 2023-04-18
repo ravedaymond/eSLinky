@@ -365,6 +365,10 @@ body ::-webkit-scrollbar-thumb:hover {
     text-align: center;
 }
 
+#pager-active {
+    color: var(--app-dark-primary-accent-hover-color);
+}
+
 /* .pager-button {
 
 } */
