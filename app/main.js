@@ -20,7 +20,7 @@ class Main {
     static #pagination = {
         current: 0,
         pages: 1,
-        perPage: 100
+        perPage: 50
     }
 
     static init() {
@@ -152,7 +152,7 @@ class Main {
             console.log('dock-settings');
         });
     }
-    
+
     static #actionsPager() {
         ipcMain.handle('pager-first', (event) => {
             const resp = {
@@ -163,28 +163,28 @@ class Main {
         });
         ipcMain.handle('pager-previous', (event) => {
             const resp = {
-                data: Main.#paginationLoadPageData(Main.#pagination.current-1),
+                data: Main.#paginationLoadPageData(Main.#pagination.current - 1),
                 page: Main.#pagination.current
             }
             return resp;
         });
         ipcMain.handle('pager-select', (event, page) => {
             const resp = {
-                data: Main.#paginationLoadPageData(page-1),
+                data: Main.#paginationLoadPageData(page - 1),
                 page: Main.#pagination.current
             };
             return resp;
         });
         ipcMain.handle('pager-next', (event) => {
             const resp = {
-                data: Main.#paginationLoadPageData(Main.#pagination.current+1),
+                data: Main.#paginationLoadPageData(Main.#pagination.current + 1),
                 page: Main.#pagination.current
             }
             return resp;
         });
         ipcMain.handle('pager-last', (event) => {
             const resp = {
-                data: Main.#paginationLoadPageData(Main.#pagination.pages-1),
+                data: Main.#paginationLoadPageData(Main.#pagination.pages - 1),
                 page: Main.#pagination.current
             }
             return resp;
@@ -309,10 +309,16 @@ class Main {
         const type = Main.#assetLoadIconSVG(`tableType${(link.file ? 'File' : 'Folder')}`)
         const target = fs.existsSync(link.target); // Check if target exists
         // const link = fs.existsSync() // Check if links containing directory exists
-        return `<tr>
+        return `
+        <tr>
             <td>
-                <input class="data-checkbox" type="checkbox" />
+                <form id="${link.link}">
+                    <input type="submit" />
+                </form>
             </td>
+            <td>
+                <input form="${link.link}" class="data-checkbox" type="checkbox" name="checkbox" />
+            </td> 
             <td class="table-attributes">
                 <div class="table-icon">${type}</div>
                 <div class="table-icon table-icon-${target ? '' : 'inactive'}">${assets.target}</div>
@@ -321,13 +327,18 @@ class Main {
                 <div class="table-icon table-icon-${link.junction ? 'active' : 'inactive'}">${assets.junction}</div>
             </td>
             <td class="table-name">
-                <input type="text" minlength="1" maxlength="32" value="${link.name}" />
+                <input form="${link.link}" type="text" minlength="1" maxlength="32" name="name" value="${link.name}" />
             </td>
             <td class="table-description">
-                <input type="text" value="${link.description}" />
+                <input form="${link.link}" type="text" name="description" value="${link.description}" />
             </td>
             <td class="table-tags">${link.tags}</td>
-        </tr>`;
+        </tr>
+        `;
+    }
+
+    static #hashUniqueFormId(link) {
+
     }
 
     static #paginationInit() {
@@ -353,8 +364,8 @@ class Main {
         const data = [];
         if (page >= 0 && page < Main.#pagination.pages) {
             Main.#pagination.current = page;
-            const begin = Main.#pagination.current*Main.#pagination.perPage;
-            const end = (begin+Main.#pagination.perPage);
+            const begin = Main.#pagination.current * Main.#pagination.perPage;
+            const end = (begin + Main.#pagination.perPage);
             Main.#settings.links.slice(begin, end).forEach(link => {
                 data.push(Main.#dataCreateTableRowHTML(link, {
                     target: Main.#assetLoadIconSVG('tableTarget'),

@@ -262,6 +262,10 @@ body {
     border-bottom: 1px solid var(--app-dark-primary-separator-color);
 }
 
+.main-table-data form {
+    display: none;
+}
+
 .main-table-data tr:hover {
     background-color: var(--app-dark-tertiary-background-color);
 }

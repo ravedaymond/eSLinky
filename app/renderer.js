@@ -1,8 +1,21 @@
 class Renderer {
     static init() {
         Renderer.#versions();
-        Renderer.#preload();
+        Renderer.#preload.icons();
+        Renderer.#preload.data();
         // window.preload['complete']();
+        addEventListener('submit', (event) => {
+            event.preventDefault();
+            Renderer.#formSubmit(event);
+        });
+        // addEventListener('focusin', (event) => {
+        //     event.preventDefault();
+        //     Renderer.#formFocusIn(event);
+        // });
+        addEventListener('focusout', (event) => {
+            event.preventDefault();
+            Renderer.#formFocusOut(event);
+        });
     }
 
     static #versions() {
@@ -10,43 +23,51 @@ class Renderer {
         electronInfo.innerText = `Chrome (v${window.versions.chrome()}); Node.js (v${window.versions.node()}); Electron (v${window.versions.electron});`;
     }
 
-    static #preload() {
-        Renderer.#preloadIcons();
-        Renderer.#preloadData();
-    }
-
-    static async #preloadIcons() {
-        const icons = document.getElementsByClassName('lucide-icon');
-        let req = [];
-        for (let i = 0; i < icons.length; i++) {
-            req.push(icons[i].getAttribute('icon-name'));
-        }
-        const resp = await window.preload.icons(req);
-        for (let i = 0; i < icons.length; i++) {
-            const icon = icons[i];
-            icon.innerHTML = resp[i];
-            const methodName = icon.getAttribute('icon-name');
-            if(icon.classList.contains('pager-button')) {
-                icon.addEventListener('click', (event) => {
-                    Renderer.#onClick.pagerArrowButton(event, methodName);
-                });
-            } else {
-                icon.addEventListener('click', (event) => {
-                    window.actions[methodName]();
-                });
+    static #preload = {
+        icons: async () => {
+            const icons = document.getElementsByClassName('lucide-icon');
+            let req = [];
+            for (let i = 0; i < icons.length; i++) {
+                req.push(icons[i].getAttribute('icon-name'));
             }
+            const resp = await window.preload.icons(req);
+            for (let i = 0; i < icons.length; i++) {
+                const icon = icons[i];
+                icon.innerHTML = resp[i];
+                const methodName = icon.getAttribute('icon-name');
+                if(icon.classList.contains('pager-button')) {
+                    icon.addEventListener('click', (event) => {
+                        Renderer.#onClick.pagerArrowAction(event, methodName);
+                    });
+                } else {
+                    icon.addEventListener('click', (event) => {
+                        window.actions[methodName]();
+                    });
+                }
+            }
+        },
+        data: async () => {
+            const resp = await window.preload.data();
+            Renderer.#pagerUpdateAvailablePages(resp.pageHTML);
+            Renderer.#dataPopulateMainTable(resp.tableData);
+            Renderer.#pagerUpdateActivePageCSS(0);
         }
     }
 
-    static async #preloadData() {
-        const resp = await window.preload.data();
-        Renderer.#populateTablePagerNumbers(resp.pageHTML);
-        Renderer.#populateMainTableData(resp.tableData);
-        Renderer.#updateCurrentPageNumber(0);
-        return true;
+    static #onClick = {
+        pagerArrowAction: async (event, methodName) => {
+            const resp = await window.actions[methodName]();
+            Renderer.#dataPopulateMainTable(resp.data);
+            Renderer.#pagerUpdateActivePageCSS(resp.page);
+        },
+        pagerSelectAction: async (event, page) => {
+            const resp = await window.actions.pagerSelect(page);
+            Renderer.#dataPopulateMainTable(resp.data);
+            Renderer.#pagerUpdateActivePageCSS(resp.page);
+        }
     }
 
-    static #populateTablePagerNumbers(pageHTML) {
+    static #pagerUpdateAvailablePages(pageHTML) {
         const pager = document.getElementsByClassName('main-table-pager')[0];
         const pages = document.getElementsByClassName('table-pager-numbers')[0];
         if (pageHTML.length > 0) { pages.innerHTML = ''; }
@@ -60,12 +81,12 @@ class Renderer {
         }
         pages.childNodes.forEach(child => {
             child.addEventListener('click', (event) => {
-                Renderer.#onClick.pagerNumberSelect(event, child.innerText);
+                Renderer.#onClick.pagerSelectAction(event, child.innerText);
             });
         });
     }
 
-    static #updateCurrentPageNumber(page) {
+    static #pagerUpdateActivePageCSS(page) {
         const prev = document.getElementById('pager-active');
         if (prev) {
             prev.removeAttribute('id');
@@ -73,7 +94,7 @@ class Renderer {
         document.getElementsByClassName('pager-number')[page].setAttribute('id', 'pager-active');
     }
 
-    static #populateMainTableData(tableData) {
+    static #dataPopulateMainTable(tableData) {
         const data = document.getElementsByClassName('main-table-data')[0];
         if (tableData.length > 0) { data.innerHTML = ''; }
         for (let i = 0; i < tableData.length; i++) {
@@ -81,16 +102,20 @@ class Renderer {
         }
     }
 
-    static #onClick = {
-        pagerArrowButton: async (event, methodName) => {
-            const resp = await window.actions[methodName]();
-            Renderer.#populateMainTableData(resp.data);
-            Renderer.#updateCurrentPageNumber(resp.page);
-        },
-        pagerNumberSelect: async (event, page) => {
-            const resp = await window.actions.pagerSelect(page);
-            Renderer.#populateMainTableData(resp.data);
-            Renderer.#updateCurrentPageNumber(resp.page);
+    static #formSubmit(event) {
+        console.log('form submit', event);
+        // Lose focus of all events
+    }
+
+    static #formFocusIn(event) {
+        if(event.target.nodeName !== 'INPUT') { return; }
+        console.log('focus in', event);
+    }
+
+    static #formFocusOut(event) {
+        if(event.target.nodeName !== 'INPUT') { return; }
+        if(event.target.type === 'text') {
+            event.target.value = event.target.defaultValue;
         }
     }
 
