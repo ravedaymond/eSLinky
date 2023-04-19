@@ -26,6 +26,7 @@ class Preload {
             dockSettings: () => ipcRenderer.invoke('dock-settings'),
             pagerFirst: () => ipcRenderer.invoke('pager-first'),
             pagerPrevious: () => ipcRenderer.invoke('pager-previous'),
+            pagerSelect: (page) => ipcRenderer.invoke('pager-select', page),
             pagerNext: () => ipcRenderer.invoke('pager-next'),
             pagerLast: () => ipcRenderer.invoke('pager-last'),
         });

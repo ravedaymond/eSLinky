@@ -365,13 +365,17 @@ body ::-webkit-scrollbar-thumb:hover {
     text-align: center;
 }
 
+.pager-number:hover {
+    color: var(--app-dark-primary-accent-static-color);
+}
+
 #pager-active {
     color: var(--app-dark-primary-accent-hover-color);
 }
 
-/* .pager-button {
-
-} */
+.pager-button:hover {
+    cursor: pointer;
+}
 
 .content-terminal {
     display: flex;

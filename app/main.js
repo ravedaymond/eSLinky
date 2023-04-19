@@ -152,32 +152,37 @@ class Main {
     
     static #actionsPager() {
         ipcMain.handle('pager-first', (event) => {
-            const p = Main.#pagination.current*-1;
             const resp = {
-                data: Main.#paginationLoadPageData(p),
+                data: Main.#paginationLoadPageData(0),
                 page: Main.#pagination.current
             }
             return resp;
         });
         ipcMain.handle('pager-previous', (event) => {
             const resp = {
-                data: Main.#paginationLoadPageData(-1),
+                data: Main.#paginationLoadPageData(Main.#pagination.current-1),
                 page: Main.#pagination.current
             }
             return resp;
         });
+        ipcMain.handle('pager-select', (event, page) => {
+            const resp = {
+                data: Main.#paginationLoadPageData(page-1),
+                page: Main.#pagination.current
+            };
+            return resp;
+        });
         ipcMain.handle('pager-next', (event) => {
             const resp = {
-                data: Main.#paginationLoadPageData(1),
+                data: Main.#paginationLoadPageData(Main.#pagination.current+1),
                 page: Main.#pagination.current
             }
             return resp;
         });
         ipcMain.handle('pager-last', (event) => {
-            const p = Main.#pagination.pages - 1;
             const resp = {
-                data: Main.#paginationLoadPageData(p),
-                page: p
+                data: Main.#paginationLoadPageData(Main.#pagination.pages-1),
+                page: Main.#pagination.current
             }
             return resp;
         });
@@ -341,14 +346,12 @@ class Main {
         return resp;
     }
 
-    static #paginationLoadPageData(value) {
+    static #paginationLoadPageData(page) {
         const data = [];
-        const page = Main.#pagination.current + value;
         if (page >= 0 && page < Main.#pagination.pages) {
             Main.#pagination.current = page;
             const begin = Main.#pagination.current*Main.#pagination.perPage;
             const end = (begin+Main.#pagination.perPage);
-            console.log('begin', begin, 'end', end);
             Main.#settings.links.slice(begin, end).forEach(link => {
                 data.push(Main.#dataCreateTableRowHTML(link, {
                     target: Main.#assetLoadIconSVG('tableTarget'),

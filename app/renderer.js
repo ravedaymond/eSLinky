@@ -24,16 +24,16 @@ class Renderer {
         for (let i = 0; i < icons.length; i++) {
             const icon = icons[i];
             icon.innerHTML = resp[i];
-            icon.addEventListener('click', (event) => {
-                const methodName = icon.getAttribute('icon-name');
-                if (Renderer.#onClick.hasOwnProperty(methodName)) {
-                    // Handle click event method
-                    Renderer.#onClick[methodName](event, methodName);
-                } else {
-                    // Pass through click action to main
+            const methodName = icon.getAttribute('icon-name');
+            if(icon.classList.contains('pager-button')) {
+                icon.addEventListener('click', (event) => {
+                    Renderer.#onClick.pagerArrowButton(event, methodName);
+                });
+            } else {
+                icon.addEventListener('click', (event) => {
                     window.actions[methodName]();
-                }
-            });
+                });
+            }
         }
     }
 
@@ -46,14 +46,20 @@ class Renderer {
 
     static #populateTablePagerNumbers(pageHTML) {
         const pages = document.getElementsByClassName('table-pager-numbers')[0];
+        if (pageHTML.length > 0) { pages.innerHTML = ''; }
         for (let i = 0; i < pageHTML.length; i++) {
             pages.innerHTML = pages.innerHTML + pageHTML[i];
         }
+        pages.childNodes.forEach(child => {
+            child.addEventListener('click', (event) => {
+                Renderer.#onClick.pagerNumberSelect(event, child.innerText);
+            });
+        });
     }
 
     static #updateCurrentPageNumber(page) {
         const prev = document.getElementById('pager-active');
-        if(prev) {
+        if (prev) {
             prev.removeAttribute('id');
         }
         document.getElementsByClassName('pager-number')[page].setAttribute('id', 'pager-active');
@@ -68,24 +74,13 @@ class Renderer {
     }
 
     static #onClick = {
-        pagerFirst: async (event, methodName) => {
-            const resp = await window.actions[methodName]();
-            console.log(resp);
-            Renderer.#populateMainTableData(resp.data);
-            Renderer.#updateCurrentPageNumber(resp.page);
-        },
-        pagerPrevious: async (event, methodName) => {
+        pagerArrowButton: async (event, methodName) => {
             const resp = await window.actions[methodName]();
             Renderer.#populateMainTableData(resp.data);
             Renderer.#updateCurrentPageNumber(resp.page);
         },
-        pagerNext: async (event, methodName) => {
-            const resp = await window.actions[methodName]();
-            Renderer.#populateMainTableData(resp.data);
-            Renderer.#updateCurrentPageNumber(resp.page);
-        },
-        pagerLast: async (event, methodName) => {
-            const resp = await window.actions[methodName]();
+        pagerNumberSelect: async (event, page) => {
+            const resp = await window.actions.pagerSelect(page);
             Renderer.#populateMainTableData(resp.data);
             Renderer.#updateCurrentPageNumber(resp.page);
         }
