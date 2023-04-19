@@ -20,7 +20,7 @@ class Main {
     static #pagination = {
         current: 0,
         pages: 1,
-        perPage: 5
+        perPage: 100
     }
 
     static init() {
@@ -94,6 +94,9 @@ class Main {
                 tableData: Main.#paginationLoadPageData(0)
             };
         });
+        // ipcMain.handle('preload-complete', (event) => {
+        //     Main.#appWindow.show();
+        // });
     }
 
     static #actionsHandler() {

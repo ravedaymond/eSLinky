@@ -2,6 +2,7 @@ class Renderer {
     static init() {
         Renderer.#versions();
         Renderer.#preload();
+        // window.preload['complete']();
     }
 
     static #versions() {
@@ -9,7 +10,7 @@ class Renderer {
         electronInfo.innerText = `Chrome (v${window.versions.chrome()}); Node.js (v${window.versions.node()}); Electron (v${window.versions.electron});`;
     }
 
-    static async #preload() {
+    static #preload() {
         Renderer.#preloadIcons();
         Renderer.#preloadData();
     }
@@ -42,11 +43,18 @@ class Renderer {
         Renderer.#populateTablePagerNumbers(resp.pageHTML);
         Renderer.#populateMainTableData(resp.tableData);
         Renderer.#updateCurrentPageNumber(0);
+        return true;
     }
 
     static #populateTablePagerNumbers(pageHTML) {
+        const pager = document.getElementsByClassName('main-table-pager')[0];
         const pages = document.getElementsByClassName('table-pager-numbers')[0];
         if (pageHTML.length > 0) { pages.innerHTML = ''; }
+        if (pageHTML.length <= 1) { 
+            pager.style.display = 'none';
+        } else {
+            pager.style.display = 'flex';
+        }
         for (let i = 0; i < pageHTML.length; i++) {
             pages.innerHTML = pages.innerHTML + pageHTML[i];
         }

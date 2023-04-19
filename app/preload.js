@@ -12,7 +12,8 @@ class Preload {
         });
         contextBridge.exposeInMainWorld('preload', {
             icons: (icons) => ipcRenderer.invoke('preload-icons', icons),
-            data: () => ipcRenderer.invoke('preload-data')
+            data: () => ipcRenderer.invoke('preload-data'),
+            complete: () => ipcRenderer.invoke('preload-complete')
         });
         contextBridge.exposeInMainWorld('actions', {
             titlebarMinimize: () => ipcRenderer.invoke('titlebar-minimize'),
