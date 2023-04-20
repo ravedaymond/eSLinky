@@ -2,15 +2,6 @@ const { app, BrowserWindow, ipcMain, globalShortcut, dialog, shell } = require('
 const path = require('path');
 const fs = require('fs');
 
-const KeyboardRefreshShortcuts = [
-    'CmdOrCtrl+Shift+R',
-    'Shift+F5',
-    'CmdOrCtrl+F5',
-    'CmdOrCtrl+Shift+F5',
-    'CmdOrCtrl+R',
-    'F5'
-];
-
 let appliedTheme;
 
 class Main {
@@ -25,10 +16,7 @@ class Main {
 
     static init() {
         app.whenReady().then(() => {
-            // Disable all chromium refresh keyboard commands
-            // globalShortcut.registerAll(KeyboardRefreshShortcuts, () => { 
-            //console.log('Chromium window refresh shortcuts are disabled.') 
-            // });
+            Main.#Keybinds.init();
             Main.#settingsLoad();
             Main.#paginationInit();
 
@@ -321,8 +309,8 @@ class Main {
             </td> 
             <td class="table-attributes">
                 <div class="table-icon">${type}</div>
-                <div class="table-icon table-icon-${target ? '' : 'inactive'}">${assets.target}</div>
                 <div class="table-icon table-icon-${link.active ? 'active' : 'inactive'}">${assets.active}</div>
+                <div class="table-icon table-icon-${target ? '' : 'inactive'}">${assets.target}</div>
                 <div class="table-icon table-icon-${link.hard ? 'active' : 'inactive'}">${assets.hard}</div>
                 <div class="table-icon table-icon-${link.junction ? 'active' : 'inactive'}">${assets.junction}</div>
             </td>
@@ -376,6 +364,34 @@ class Main {
             });
         }
         return data;
+    }
+
+    static #Keybinds = class {
+
+        static init() {
+            Main.#Keybinds.#disableChromiumRefreshCommands();
+            Main.#Keybinds.#clearFormInputFocus();
+        }
+
+        static #disableChromiumRefreshCommands() {
+            globalShortcut.registerAll([
+                'CmdOrCtrl+Shift+R',
+                'Shift+F5',
+                'CmdOrCtrl+F5',
+                'CmdOrCtrl+Shift+F5',
+                'CmdOrCtrl+R',
+                'F5'
+            ], () => { 
+                console.log('Chromium window refresh shortcuts are disabled.');
+            });
+        }
+
+        static #clearFormInputFocus() {
+            globalShortcut.register('Esc', () => {
+                Main.#appWindow.webContents.send('keybind-escape');
+            });
+        }
+
     }
 
     static #Test = class {

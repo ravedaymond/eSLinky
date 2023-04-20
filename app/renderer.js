@@ -4,17 +4,12 @@ class Renderer {
         Renderer.#preload.icons();
         Renderer.#preload.data();
         // window.preload['complete']();
-        addEventListener('submit', (event) => {
-            event.preventDefault();
-            Renderer.#formSubmit(event);
-        });
-        // addEventListener('focusin', (event) => {
-        //     event.preventDefault();
-        //     Renderer.#formFocusIn(event);
-        // });
-        addEventListener('focusout', (event) => {
-            event.preventDefault();
-            Renderer.#formFocusOut(event);
+
+        Renderer.#formSubmit();
+        Renderer.#formFocusOut();
+        
+        window.keybind.escape((event) => {
+            document.querySelector(':focus').blur();
         });
     }
 
@@ -102,21 +97,30 @@ class Renderer {
         }
     }
 
-    static #formSubmit(event) {
-        console.log('form submit', event);
-        // Lose focus of all events
+    static #formSubmit() {
+        addEventListener('submit', (event) => {
+            event.preventDefault();
+            document.querySelector(':focus').blur();
+            console.log('submit', event);
+        });
     }
 
-    static #formFocusIn(event) {
-        if(event.target.nodeName !== 'INPUT') { return; }
-        console.log('focus in', event);
+    static #formFocusOut() {
+        addEventListener('focusout', (event) => {
+            event.preventDefault();
+            if(event.target.nodeName !== 'INPUT') { return; }
+            if(event.target.type === 'text') {
+                event.target.value = event.target.defaultValue;
+            }
+        });
     }
 
-    static #formFocusOut(event) {
-        if(event.target.nodeName !== 'INPUT') { return; }
-        if(event.target.type === 'text') {
-            event.target.value = event.target.defaultValue;
-        }
+    static #formFocusIn() {
+        addEventListener('focusin', (event) => {
+            event.preventDefault();
+            if(event.target.nodeName !== 'INPUT') { return; }
+            console.log('focus in', event);
+        });
     }
 
 }
