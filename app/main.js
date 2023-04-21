@@ -16,18 +16,18 @@ class Main {
 
     static init() {
         app.whenReady().then(() => {
-            Main.#Keybinds.init();
+            Main.#keybindsHandler();
             Main.#settingsLoad();
-            Main.#paginationInit();
+            Main.#paginationSetPages();
 
-            Main.#createWindow();
+            Main.#appCreateWindow();
             // Windows are only able to be created after the ready event. 
             // Listen for 'activate' events after the window has been created.
             app.on('activate', () => {
                 // On OS X it's common to re-create a window in the app when the
                 // dock icon is clicked and there are no other windows open.
                 if (BrowserWindow.getAllWindows().length === 0) {
-                    Main.#createWindow();
+                    Main.#appCreateWindow();
                 }
             });
         });
@@ -41,7 +41,10 @@ class Main {
         });
     }
 
-    static #createWindow() {
+    /*
+    APP
+    */
+    static #appCreateWindow() {
         Main.#appWindow = new BrowserWindow({
             titleBarStyle: 'hidden',
             width: 800,
@@ -67,33 +70,79 @@ class Main {
         Main.#appWindow.webContents.openDevTools({ mode: 'undocked' });
     }
 
-    static #preloadHandler() {
-        // ipcMain.handleOnce('preload-icons', (event, icons) => {
-        ipcMain.handle('preload-icons', (event, icons) => {
-            let resp = [];
-            icons.forEach(icon => {
-                resp.push(Main.#assetLoadIconSVG(icon));
-            });
+    static #assetLoadIconSVG(icon) {
+        return fs.readFileSync(path.join(`${__dirname}/assets/svg/${icon}.svg`), { encoding: 'utf-8' });
+    }
+
+    /*
+    ACTIONS
+    */
+    static #actionsHandler() {
+        Main.#actionsTitlebar();
+        Main.#actionsDock();
+        Main.#actionsPagination();
+    }
+
+    static #actionsDock() {
+        ipcMain.handle('dock-file-symlink', (event) => {
+            console.log('dock-file-symlink');
+        });
+        ipcMain.handle('dock-folder-symlink', (event) => {
+            console.log('dock-folder-symlink');
+        });
+        ipcMain.handle('dock-folder-search', (event) => {
+            console.log('dock-folder-search');
+        });
+        ipcMain.handle('dock-terminal', (event) => {
+            console.log('dock-terminal');
+        });
+        ipcMain.handle('dock-help', (event) => {
+            console.log('dock-help');
+        });
+        ipcMain.handle('dock-settings', (event) => {
+            console.log('dock-settings');
+        });
+    }
+
+    static #actionsPagination() {
+        ipcMain.handle('pager-first', (event) => {
+            const resp = {
+                data: Main.#paginationGetPageTableHTML(0),
+                page: Main.#pagination.current
+            }
             return resp;
         });
-        ipcMain.handle('preload-data', (event) => {
-            return {
-                pageHTML: Main.#paginationCreatePageNumbersHTML(),
-                tableData: Main.#paginationLoadPageData(0)
-            };
+        ipcMain.handle('pager-previous', (event) => {
+            const resp = {
+                data: Main.#paginationGetPageTableHTML(Main.#pagination.current - 1),
+                page: Main.#pagination.current
+            }
+            return resp;
         });
-        // ipcMain.handle('preload-complete', (event) => {
-        //     Main.#appWindow.show();
-        // });
+        ipcMain.handle('pager-select', (event, page) => {
+            const resp = {
+                data: Main.#paginationGetPageTableHTML(page - 1),
+                page: Main.#pagination.current
+            };
+            return resp;
+        });
+        ipcMain.handle('pager-next', (event) => {
+            const resp = {
+                data: Main.#paginationGetPageTableHTML(Main.#pagination.current + 1),
+                page: Main.#pagination.current
+            }
+            return resp;
+        });
+        ipcMain.handle('pager-last', (event) => {
+            const resp = {
+                data: Main.#paginationGetPageTableHTML(Main.#pagination.pages - 1),
+                page: Main.#pagination.current
+            }
+            return resp;
+        });
     }
 
-    static #actionsHandler() {
-        Main.#actionsTitleBar();
-        Main.#actionsDock();
-        Main.#actionsPager();
-    }
-
-    static #actionsTitleBar() {
+    static #actionsTitlebar() {
         ipcMain.handle('titlebar-minimize', (event) => {
             Main.#appWindow.minimize();
         });
@@ -120,76 +169,154 @@ class Main {
         });
     }
 
-    static #actionsDock() {
-        ipcMain.handle('dock-file-symlink', (event) => {
-            console.log('dock-file-symlink');
-        });
-        ipcMain.handle('dock-folder-symlink', (event) => {
-            console.log('dock-folder-symlink');
-        });
-        ipcMain.handle('dock-folder-search', (event) => {
-            console.log('dock-folder-search');
-        });
-        ipcMain.handle('dock-terminal', (event) => {
-            console.log('dock-terminal');
-        });
-        ipcMain.handle('dock-help', (event) => {
-            console.log('dock-help');
-        });
-        ipcMain.handle('dock-settings', (event) => {
-            console.log('dock-settings');
+    /*
+    KEYBINDINGS
+    */
+    static #keybindsHandler() {
+        Main.#keybindsServerDisableChromiumRefresh();
+        Main.#keybindsServerQuitApp();
+        Main.#keybindsCallbackClearInputFocus();
+        Main.#keybindsCallbackToggleTerminal();
+    }
+
+    static #keybindsServerDisableChromiumRefresh() {
+        globalShortcut.registerAll([
+            'CmdOrCtrl+Shift+R',
+            'Shift+F5',
+            'CmdOrCtrl+F5',
+            'CmdOrCtrl+Shift+F5',
+            'CmdOrCtrl+R',
+            'F5'
+        ], () => {
+            console.log('Chromium window refresh shortcuts are disabled.');
         });
     }
 
-    static #actionsPager() {
-        ipcMain.handle('pager-first', (event) => {
-            const resp = {
-                data: Main.#paginationLoadPageData(0),
-                page: Main.#pagination.current
+    static #keybindsServerQuitApp() {
+        globalShortcut.register('Ctrl+Q', () => {
+            app.quit();
+        });
+    }
+
+    static #keybindsCallbackClearInputFocus() {
+        globalShortcut.register('Esc', () => {
+            Main.#appWindow.webContents.send('keybind-escape');
+        });
+    }
+
+    static #keybindsCallbackToggleTerminal() {
+        globalShortcut.register('Ctrl+T', () => {
+            Main.#appWindow.webContents.send('keybind-terminal');
+        });
+    }
+
+    /*
+    PAGINATION
+    */
+    static #paginationSetPages() {
+        // ### LOCAL TEST DATA ONLY
+        Main.#settings.links = Main.#Test.testData100();
+        const records = Main.#settings.links.length;
+        const remainder = (records % Main.#pagination.perPage);
+        Main.#pagination.pages = (records - remainder) / Main.#pagination.perPage
+            + ((remainder > 0) ? 1 : 0);
+    }
+
+    static #paginationGetPageNumbersHTML() {
+        let resp = [];
+        for (let i = 0; i < Main.#pagination.pages; i++) {
+            resp.push(
+                `<div class="pager-number pager-button">${i + 1}</div>`
+            );
+        }
+        return resp;
+    }
+
+    static #paginationGetPageTableHTML(page) {
+        const data = [];
+        if (page >= 0 && page < Main.#pagination.pages) {
+            Main.#pagination.current = page;
+            const begin = Main.#pagination.current * Main.#pagination.perPage;
+            const end = (begin + Main.#pagination.perPage);
+            const pageLinks = Main.#settings.links.slice(begin, end);
+            for (let i = 0; i < pageLinks.length; i++) {
+                data.push(Main.#paginationCreateTableRow(pageLinks[i], i, {
+                    target: Main.#assetLoadIconSVG('tableTarget'),
+                    active: Main.#assetLoadIconSVG('tableActive'),
+                    hard: Main.#assetLoadIconSVG('tableHard'),
+                    junction: Main.#assetLoadIconSVG('tableJunction')
+                }));
             }
+        }
+        return data;
+    }
+
+    static #paginationCreateTableRow(link, indexInPage, assets) {
+        const formId = `page-${indexInPage}`;
+        const type = Main.#assetLoadIconSVG(`tableType${(link.file ? 'File' : 'Folder')}`)
+        const target = fs.existsSync(link.target); // Check if target exists
+        // const link = fs.existsSync() // Check if links containing directory exists
+        return `
+        <tr>
+            <td>
+                <form id="${formId}">
+                    <input type="submit" value="${indexInPage}"/>
+                </form>
+            </td>
+            <td>
+                <input form="${formId}" class="data-checkbox" type="checkbox" name="checkbox" />
+            </td> 
+            <td class="table-attributes">
+                <div class="table-icon">${type}</div>
+                <div class="table-icon table-icon-${link.active ? 'active' : 'inactive'}">${assets.active}</div>
+                <div class="table-icon table-icon-${target ? '' : 'inactive'}">${assets.target}</div>
+                <div class="table-icon table-icon-${link.hard ? 'active' : 'inactive'}">${assets.hard}</div>
+                <div class="table-icon table-icon-${link.junction ? 'active' : 'inactive'}">${assets.junction}</div>
+            </td>
+            <td class="table-name">
+                <input form="${formId}" type="text" minlength="1" maxlength="32" name="name" value="${link.name}" />
+            </td>
+            <td class="table-description">
+                <input form="${formId}" type="text" name="description" value="${link.description}" />
+            </td>
+            <td class="table-tags">${link.tags}</td>
+        </tr>
+        `;
+    }
+
+    /*
+    PRELOAD
+    */
+    static #preloadHandler() {
+        // ipcMain.handleOnce('preload-icons', (event, icons) => {
+        ipcMain.handle('preload-icons', (event, icons) => {
+            let resp = [];
+            icons.forEach(icon => {
+                resp.push(Main.#assetLoadIconSVG(icon));
+            });
             return resp;
         });
-        ipcMain.handle('pager-previous', (event) => {
-            const resp = {
-                data: Main.#paginationLoadPageData(Main.#pagination.current - 1),
-                page: Main.#pagination.current
-            }
-            return resp;
-        });
-        ipcMain.handle('pager-select', (event, page) => {
-            const resp = {
-                data: Main.#paginationLoadPageData(page - 1),
-                page: Main.#pagination.current
+        ipcMain.handle('preload-data', (event) => {
+            return {
+                pageHTML: Main.#paginationGetPageNumbersHTML(),
+                tableData: Main.#paginationGetPageTableHTML(0)
             };
-            return resp;
         });
-        ipcMain.handle('pager-next', (event) => {
-            const resp = {
-                data: Main.#paginationLoadPageData(Main.#pagination.current + 1),
-                page: Main.#pagination.current
-            }
-            return resp;
-        });
-        ipcMain.handle('pager-last', (event) => {
-            const resp = {
-                data: Main.#paginationLoadPageData(Main.#pagination.pages - 1),
-                page: Main.#pagination.current
-            }
-            return resp;
-        });
+        // ipcMain.handle('preload-complete', (event) => {
+        //     Main.#appWindow.show();
+        // });
     }
 
-    static #assetLoadIconSVG(icon) {
-        return fs.readFileSync(path.join(`${__dirname}/assets/svg/${icon}.svg`), { encoding: 'utf-8' });
-    }
-
+    /*
+    SETTINGS
+    */
     static #settingsLoad() {
         const config = path.join(`${__dirname}/config/`);
         const settings = path.join(config, 'settings.json');
         const template = path.join(`${__dirname}src/resource/templates/settings.default.json`);
         const loadSettingsFromPath = (target) => {
             Main.#settings = JSON.parse(fs.readFileSync(target), { encoding: 'utf-8' }).eslinky;
-            Main.#themeCreateCSS();
+            Main.#settingsSetThemeCSS();
         }
         const createSettingsFromTemplate = () => {
             fs.copyFileSync(template, settings);
@@ -283,7 +410,7 @@ class Main {
         fs.appendFileSync(p, JSON.stringify({ eslinky: Main.#settings }, null, 4));
     }
 
-    static #themeCreateCSS() {
+    static #settingsSetThemeCSS() {
         try {
             const appliedTheme = JSON.stringify(Main.#settings.themes[Main.#settings.preferences.theme], null, 4)
                 .replaceAll('",', ';').replaceAll('"', '').replace(')\n}', ');\n}\n').replace('{', ':root {');
@@ -293,107 +420,9 @@ class Main {
         }
     }
 
-    static #dataCreateTableRowHTML(link, assets) {
-        const type = Main.#assetLoadIconSVG(`tableType${(link.file ? 'File' : 'Folder')}`)
-        const target = fs.existsSync(link.target); // Check if target exists
-        // const link = fs.existsSync() // Check if links containing directory exists
-        return `
-        <tr>
-            <td>
-                <form id="${link.link}">
-                    <input type="submit" />
-                </form>
-            </td>
-            <td>
-                <input form="${link.link}" class="data-checkbox" type="checkbox" name="checkbox" />
-            </td> 
-            <td class="table-attributes">
-                <div class="table-icon">${type}</div>
-                <div class="table-icon table-icon-${link.active ? 'active' : 'inactive'}">${assets.active}</div>
-                <div class="table-icon table-icon-${target ? '' : 'inactive'}">${assets.target}</div>
-                <div class="table-icon table-icon-${link.hard ? 'active' : 'inactive'}">${assets.hard}</div>
-                <div class="table-icon table-icon-${link.junction ? 'active' : 'inactive'}">${assets.junction}</div>
-            </td>
-            <td class="table-name">
-                <input form="${link.link}" type="text" minlength="1" maxlength="32" name="name" value="${link.name}" />
-            </td>
-            <td class="table-description">
-                <input form="${link.link}" type="text" name="description" value="${link.description}" />
-            </td>
-            <td class="table-tags">${link.tags}</td>
-        </tr>
-        `;
-    }
-
-    static #hashUniqueFormId(link) {
-
-    }
-
-    static #paginationInit() {
-        // ### LOCAL TEST DATA ONLY
-        Main.#settings.links = Main.#Test.testData100();
-        const records = Main.#settings.links.length;
-        const remainder = (records % Main.#pagination.perPage);
-        Main.#pagination.pages = (records - remainder) / Main.#pagination.perPage
-            + ((remainder > 0) ? 1 : 0);
-    }
-
-    static #paginationCreatePageNumbersHTML() {
-        let resp = [];
-        for (let i = 0; i < Main.#pagination.pages; i++) {
-            resp.push(
-                `<div class="pager-number pager-button">${i + 1}</div>`
-            )
-        }
-        return resp;
-    }
-
-    static #paginationLoadPageData(page) {
-        const data = [];
-        if (page >= 0 && page < Main.#pagination.pages) {
-            Main.#pagination.current = page;
-            const begin = Main.#pagination.current * Main.#pagination.perPage;
-            const end = (begin + Main.#pagination.perPage);
-            Main.#settings.links.slice(begin, end).forEach(link => {
-                data.push(Main.#dataCreateTableRowHTML(link, {
-                    target: Main.#assetLoadIconSVG('tableTarget'),
-                    active: Main.#assetLoadIconSVG('tableActive'),
-                    hard: Main.#assetLoadIconSVG('tableHard'),
-                    junction: Main.#assetLoadIconSVG('tableJunction')
-                }));
-            });
-        }
-        return data;
-    }
-
-    static #Keybinds = class {
-
-        static init() {
-            Main.#Keybinds.#disableChromiumRefreshCommands();
-            Main.#Keybinds.#clearFormInputFocus();
-        }
-
-        static #disableChromiumRefreshCommands() {
-            globalShortcut.registerAll([
-                'CmdOrCtrl+Shift+R',
-                'Shift+F5',
-                'CmdOrCtrl+F5',
-                'CmdOrCtrl+Shift+F5',
-                'CmdOrCtrl+R',
-                'F5'
-            ], () => { 
-                console.log('Chromium window refresh shortcuts are disabled.');
-            });
-        }
-
-        static #clearFormInputFocus() {
-            globalShortcut.register('Esc', () => {
-                Main.#appWindow.webContents.send('keybind-escape');
-            });
-        }
-
-    }
-
+    /*
+    TEST
+    */
     static #Test = class {
 
         static testData25() {

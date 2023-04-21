@@ -32,8 +32,8 @@ class Preload {
             pagerLast: () => ipcRenderer.invoke('pager-last'),
         });
         contextBridge.exposeInMainWorld('keybind', {
-            enter: () => ipcRenderer.invoke('keybind-enter'),
-            escape: (callback) => ipcRenderer.on('keybind-escape', callback)
+            escape: (callback) => ipcRenderer.on('keybind-escape', callback),
+            terminal: (callback) => ipcRenderer.on('keybind-terminal', callback),
         });
     }
 }
