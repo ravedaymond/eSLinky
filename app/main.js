@@ -286,7 +286,6 @@ class Main {
             <td class="table-description">
                 <input form="${formId}" type="text" name="description" value="${link.description}" />
             </td>
-            <td class="table-tags">${link.tags}</td>
         </tr>
         `;
     }
