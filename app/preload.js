@@ -22,7 +22,7 @@ class Preload {
             dockFileSymlink: () => ipcRenderer.invoke('dock-file-symlink'),
             dockFolderSymlink: () => ipcRenderer.invoke('dock-folder-symlink'),
             dockFolderSearch: () => ipcRenderer.invoke('dock-folder-search'),
-            dockTerminal: () => ipcRenderer.invoke('dock-terminal'),
+            // dockTerminal: () => ipcRenderer.invoke('dock-terminal'),
             dockHelp: () => ipcRenderer.invoke('dock-help'),
             dockSettings: () => ipcRenderer.invoke('dock-settings'),
             pagerFirst: () => ipcRenderer.invoke('pager-first'),

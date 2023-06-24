@@ -71,23 +71,33 @@ class Renderer {
             const resp = await window.actions.pagerSelect(page);
             Renderer.#paginationSetPageTableHTML(resp.data);
             Renderer.#paginationSetActivePageCSS(resp.page);
+        },
+        terminalShowHide: async () => {
+            const contentTerminal = document.getElementsByClassName('content-terminal')[0];
+            if(contentTerminal.classList.contains('app-hidden')) {
+                contentTerminal.classList.remove('app-hidden');
+                console.log("terminal visible");                
+            } else {
+                contentTerminal.classList.add('app-hidden');
+                console.log("terminal hidden");
+            }
         }
     }
 
     /*
     PAGINATION
     */
-    #paginationSetPageNumbersHTML(html) {
+    static #paginationSetPageNumbersHTML(html) {
         const pager = document.getElementsByClassName('main-table-pager')[0];
         const pages = document.getElementsByClassName('table-pager-numbers')[0];
-        if (pageHTML.length > 0) { pages.innerHTML = ''; }
-        if (pageHTML.length <= 1) {
+        if (html.length > 0) { pages.innerHTML = ''; }
+        if (html.length <= 1) {
             pager.style.display = 'none';
         } else {
             pager.style.display = 'flex';
         }
-        for (let i = 0; i < pageHTML.length; i++) {
-            pages.innerHTML = pages.innerHTML + pageHTML[i];
+        for (let i = 0; i < html.length; i++) {
+            pages.innerHTML = pages.innerHTML + html[i];
         }
         pages.childNodes.forEach(child => {
             child.addEventListener('click', (event) => {
@@ -96,15 +106,15 @@ class Renderer {
         });
     }
 
-    #paginationSetPageTableHTML(table) {
-        const data = document.getElementsByClassName('main-table-data')[0];
-        if (tableData.length > 0) { data.innerHTML = ''; }
-        for (let i = 0; i < tableData.length; i++) {
-            data.innerHTML = data.innerHTML + tableData[i];
+    static #paginationSetPageTableHTML(data) {
+        const table = document.getElementsByClassName('main-table-data')[0];
+        if (data.length > 0) { table.innerHTML = ''; }
+        for (let i = 0; i < data.length; i++) {
+            table.innerHTML = table.innerHTML + data[i];
         }
     }
 
-    #paginationSetActivePageCSS(page) {
+    static #paginationSetActivePageCSS(page) {
         const prev = document.getElementById('pager-active');
         if (prev) {
             prev.removeAttribute('id');
@@ -117,7 +127,7 @@ class Renderer {
     */
     static #preloadHandler() {
         if (Renderer.#preloadIcons() + Renderer.#preloadData()) {
-            window.preload.complete();
+            window.preload['complete']();
         }
     }
 
@@ -133,7 +143,12 @@ class Renderer {
             const icon = icons[i];
             icon.innerHTML = resp[i];
             const methodName = icon.getAttribute('icon-name');
-            if (icon.classList.contains('pager-button')) {
+            // TODO Separate dock-terminal action call. Make purely UI.
+            if (methodName === 'dockTerminal') {
+                icon.addEventListener('click', (event) => {
+                    Renderer.#onClick.terminalShowHide(event);
+                });
+            } else if (icon.classList.contains('pager-button')) {
                 icon.addEventListener('click', (event) => {
                     Renderer.#onClick.pagerArrowAction(event, methodName);
                 });

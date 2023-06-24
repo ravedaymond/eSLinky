@@ -49,6 +49,9 @@ body {
     padding: 0;
     height: 100%;
     width: 100%;
+    /* Need to understand why this is not preventing resizing to less than the provided values */
+    min-width: 800px;
+    min-height: 600px;
 
     overflow: hidden;
 
@@ -64,6 +67,10 @@ body {
     flex-direction: column;
     width: 100%;
     height: 100%;
+}
+
+.app-hidden {
+    display: none !important;
 }
 
 .icon-button svg {
@@ -205,7 +212,8 @@ body {
 .workspace {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex-grow: 1;
+    max-height: 100%;
 
     /* border-bottom-style: solid;
     border-bottom-width: 1px;
@@ -282,6 +290,12 @@ body {
 .table-name {
     min-width: 128px;
     max-width: 128px;
+    margin: 0 4px;
+}
+
+.table-description {
+    min-width: 256px;
+    max-width: 512px;
     margin: 0 4px;
 }
 
@@ -388,7 +402,9 @@ body ::-webkit-scrollbar-thumb:hover {
 .content-terminal {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex-grow: 1;
+    max-height: 100%;
+    border-top: 1px solid var(--app-dark-primary-separator-color);
 }
 
 .terminal-actions {

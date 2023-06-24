@@ -16,11 +16,12 @@ class Main {
 
     static init() {
         app.whenReady().then(() => {
-            Main.#keybindsHandler();
             Main.#settingsLoad();
             Main.#paginationSetPages();
 
             Main.#appCreateWindow();
+            
+            Main.#keybindsHandler();
             // Windows are only able to be created after the ready event. 
             // Listen for 'activate' events after the window has been created.
             app.on('activate', () => {
@@ -93,9 +94,9 @@ class Main {
         ipcMain.handle('dock-folder-search', (event) => {
             console.log('dock-folder-search');
         });
-        ipcMain.handle('dock-terminal', (event) => {
-            console.log('dock-terminal');
-        });
+        // ipcMain.handle('dock-terminal', (event) => {
+        //     console.log('dock-terminal');
+        // });
         ipcMain.handle('dock-help', (event) => {
             console.log('dock-help');
         });
@@ -173,21 +174,27 @@ class Main {
     KEYBINDINGS
     */
     static #keybindsHandler() {
-        Main.#keybindsServerDisableChromiumRefresh();
-        Main.#keybindsServerQuitApp();
-        Main.#keybindsCallbackClearInputFocus();
-        Main.#keybindsCallbackToggleTerminal();
+        // Main.#keybindsServerDisableChromiumRefresh();
+        // Main.#keybindsServerQuitApp();
+        // Main.#keybindsCallbackClearInputFocus();
+        // Main.#keybindsCallbackToggleTerminal();
+        Main.#appWindow.webContents.on('before-input-event', (event, input) => {
+            
+        });
     }
 
-    static #keybindsServerDisableChromiumRefresh() {
-        globalShortcut.registerAll([
+    static #keybindsServerDisableChromiumRefresh(event) {
+        event.preventDefault();
+        const binds = [
             'CmdOrCtrl+Shift+R',
             'Shift+F5',
             'CmdOrCtrl+F5',
             'CmdOrCtrl+Shift+F5',
             'CmdOrCtrl+R',
             'F5'
-        ], () => {
+        ];
+        // TODO Ensure chromium refresh commands are disabled.
+        globalShortcut.registerAll(() => {
             console.log('Chromium window refresh shortcuts are disabled.');
         });
     }
@@ -302,9 +309,10 @@ class Main {
                 tableData: Main.#paginationGetPageTableHTML(0)
             };
         });
-        // ipcMain.handle('preload-complete', (event) => {
-        //     Main.#appWindow.show();
-        // });
+        ipcMain.handle('preload-complete', (event) => {
+            console.log('Preload completed.');
+            // Main.#appWindow.show();
+        });
     }
 
     /*
