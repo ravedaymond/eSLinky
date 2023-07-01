@@ -23,7 +23,7 @@ class Renderer {
 
     static #keybindsToggleTerminal() {
         window.keybind.terminal((event) => {
-            console.log('Toggle terminal keybind');
+            Renderer.#onClick.terminalShowHide();
         });
     }
 
@@ -146,7 +146,7 @@ class Renderer {
             // TODO Separate dock-terminal action call. Make purely UI.
             if (methodName === 'dockTerminal') {
                 icon.addEventListener('click', (event) => {
-                    Renderer.#onClick.terminalShowHide(event);
+                    Renderer.#onClick.terminalShowHide();
                 });
             } else if (icon.classList.contains('pager-button')) {
                 icon.addEventListener('click', (event) => {

@@ -174,33 +174,33 @@ class Main {
     KEYBINDINGS
     */
     static #keybindsHandler() {
-        // Main.#keybindsServerDisableChromiumRefresh();
-        // Main.#keybindsServerQuitApp();
-        // Main.#keybindsCallbackClearInputFocus();
-        // Main.#keybindsCallbackToggleTerminal();
+        Main.#keybindsServerDisableChromiumRefresh();
+        Main.#keybindsServerQuitApp();
+        Main.#keybindsCallbackClearInputFocus();
+        Main.#keybindsCallbackToggleTerminal();
         Main.#appWindow.webContents.on('before-input-event', (event, input) => {
-            
+            event.preventDefault();
         });
     }
 
-    static #keybindsServerDisableChromiumRefresh(event) {
-        event.preventDefault();
+    static #keybindsServerDisableChromiumRefresh() {
         const binds = [
             'CmdOrCtrl+Shift+R',
             'Shift+F5',
             'CmdOrCtrl+F5',
             'CmdOrCtrl+Shift+F5',
-            'CmdOrCtrl+R',
+            // 'CmdOrCtrl+R',
             'F5'
         ];
         // TODO Ensure chromium refresh commands are disabled.
-        globalShortcut.registerAll(() => {
+        globalShortcut.registerAll(binds, () => {
             console.log('Chromium window refresh shortcuts are disabled.');
         });
     }
 
     static #keybindsServerQuitApp() {
         globalShortcut.register('Ctrl+Q', () => {
+            console.log('Keybind executed: Ctrl+Q');
             app.quit();
         });
     }
@@ -216,6 +216,13 @@ class Main {
             Main.#appWindow.webContents.send('keybind-terminal');
         });
     }
+
+    /*
+    LOGGING
+    */
+   static #loggingToFile() {
+    
+   }
 
     /*
     PAGINATION
